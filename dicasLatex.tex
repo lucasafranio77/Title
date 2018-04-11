@@ -1,0 +1,388 @@
+%%% exemplo de uso de siglas e tabela de simbolos (podem ser incluídas em qualquer local do texto ou qualquer capítulo 
+%%% simbolos utilizados neste capítulo
+
+
+\chapter{Comandos Latex Básicos }
+\thispagestyle{empty}
+\section{Criando seções e capítulos}
+
+Para criar capítulos deve-se utilizar o comando 
+\begin{verbatim}
+\chapter{ titulo do capitulo}                                               
+\end{verbatim} 
+e  para criar seções utiliza-se o comando 
+\begin{verbatim}
+\section{nome da secao} 
+\end{verbatim}
+ 
+\subsection{Criando uma subseção}
+
+Subseções são criadas utilizando-se o comando
+\begin{verbatim}
+\subsection{nome da subsecao} 
+\end{verbatim}
+
+\section{Conceito de ambiente \LaTeX }
+
+O conceito de ambiente em \LaTeX é semelhante ao de qualquer linguagem de
+programação. Existe um comando que abre um escopo e outro que fecha
+
+Assim sempre que se define \verb|begin{comando}| e \verb|end{comando}| se cria
+um ambiente.
+
+Os ambientes mais utilizados são
+
+\begin{itemize}
+\item center
+\item figure
+\item table
+\item tabular
+\item enumerate 
+\end{itemize}
+%
+dentre outros. Nas seções seguintes veremos cada um desses ambientes.
+
+
+
+
+%\section{Incluindo uma figura}
+
+O comando que permite incluir uma figura é \verb|\includegraphics{nomeDoArquivo}|
+
+Assim é possível incluir uma figura como um elemento do texto.
+
+\includegraphics[width=0.9\textwidth]{modelo1}
+
+Inserindo dentro do ambiente \textbf{figure} é possivel adicionar uma legenda e
+uma referencia cruzada para se poder citar a figura dentro do texto
+utilizando-se o comando \verb|\ref{rotulo}|. Repare que
+está figura aparece na lista de figuras.
+
+\begin{figure}[!hb]
+\centering
+\includegraphics[scale=0.4]{interface1} 
+\caption{Exemplo de caption - legenda para uma figura}
+\label{fig:interface}
+\end{figure}
+
+O código \LaTeX que permite incluir esta fígura é
+
+\begin{verbatim}
+\begin{figure}[!hb]
+\centering
+\includegraphics[scale=0.4]{figuras/interface1} 
+\caption{Exemplo de caption - legenda para uma figura}
+\label{fig:interface}
+\end{figure} 
+\end{verbatim}
+                             
+
+A Figura \ref{fig:interface} foi colocada dentro do ambiente  como um objeto do
+texto. Da forma como ela está sendo referenciada, terá sua numeração feita de
+forma automática
+
+\section{Incluindo uma tabela}
+
+A inserção de tabelas é feita utilizando-se o comando \verb|tabular|
+
+Tal qual a figura, pode-se criar tabela dentro do ambiente \verb|table| ou fora.
+Dentro do ambiente \verb|table|, a tabela poderá ter um caption e um rótulo.
+
+\begin{tabular}{|l|c|r|p{4cm}|}
+\hline
+Id & Configuração & Valor & Benefícios \\
+\hline
+1 & Config 1 & 30.000,00 & Suporte gratis por 1 ano \\
+\hline	
+2 & Config 2 & 55.000,00 & Suporte gratis por 3 ano \\
+\hline
+\end{tabular}
+
+A mesma tabela quando colocada em um ambiente \verb|table| aparece como Tabela
+\ref{tab:TabEquipamentos}.
+
+\begin{table}[h]
+\centering
+\caption{Tabela de aquisição de equipamentos de informática}
+\begin{tabular}{|l|c|r|p{4cm}|}
+\hline
+Id & Configuração & Valor & Benefícios \\
+\hline
+1 & Config 1 & 30.000,00 & Suporte grátis por 1 ano \\
+\hline	
+2 & Config 2 & 55.000,00 & Suporte grátis por 3 ano \\
+\hline
+\end{tabular} 
+\label{tab:TabEquipamentos}
+\end{table}
+
+O código \LaTeX que gera a Tabela \ref{tab:TabEquipamentos} é 
+
+\begin{verbatim}
+\begin{table}[h]
+\centering
+\caption{Tabela de aquisição de equipamentos de informática}
+\begin{tabular}{|l|c|r|p{4cm}|}
+\hline
+Id & Configuração & Valor & Benefícios \\
+\hline
+1 & Config 1 & 30.000,00 & Suporte grátis por 1 ano \\
+\hline	
+2 & Config 2 & 55.000,00 & Suporte grátis por 3 ano \\
+\hline
+\end{tabular} 
+\label{tab:TabEquipamentos}
+\end{table}
+\end{verbatim}
+
+
+Exemplo do uso de multicoluna e multilinha
+
+\begin{table}[!h]
+\caption{Tabela fictícia com uso de comandos multicolumn e  multirow}
+\begin{center}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+ \multirow{2}{*}{Ano} & \multicolumn{2}{|c|}{Ciência da Computação}&
+\multicolumn{2}{|c|}{Sistemas de Informação} \\ 
+\cline{2-5}
+& Homens & Mulheres & Homens & Mulheres \\
+\hline
+2009 & 36 & 4 & 37 & 3 \\
+\hline
+2010 & 39 & 1 & 37 & 3 \\
+\hline
+\end{tabular}
+\end{center}
+\label{tab:Ficcao1}
+\end{table}
+
+\begin{verbatim}
+\begin{table}[!h]
+\caption{Tabela fictícia com uso de comandos multicolumn e  multirow}
+\begin{center}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\multirow{2}{*}{Ano} & \multicolumn{2}{|c|}
+{Ciência da Computação}& \multicolumn{2}{|c|}{Sistemas de Informação} \\ 
+\cline{2-5}
+& Homens & Mulheres & Homens & Mulheres \\
+\hline
+2009 & 36 & 4 & 37 & 3 \\
+\hline
+2010 & 39 & 1 & 37 & 3 \\
+\hline
+\end{tabular}
+\end{center}
+\label{tab:Ficcao1}
+\end{table}
+\end{verbatim}
+
+\section{Listas}
+
+É possível criar diferentes tipos de listas em um texto. A seguir são mostrados
+três tipos.
+
+\subsection{Listas enumeradas}
+
+As listas enumeradas são geradas utilizando o comando enumerate como mostrado a
+seguir, onde a numeração é colocada de forma automatica
+
+\begin{verbatim}
+\begin{enumerate}
+\item Primeiro item 
+\item Outro item 
+\item Novo Item
+\end{enumerate} 
+\end{verbatim}
+
+
+Este código gera a lista enumerada 
+
+\begin{enumerate}
+\item Primeiro item 
+\item Outro item 
+\item Novo Item
+\end{enumerate}
+
+\subsection{Listas de itens}
+
+As listas de itens servem para separar difentes itens sem numeração. Assim a
+mesma lista acima pode ser colocada como 
+
+\begin{itemize}
+\item Primeiro item 
+\item Outro item 
+\item Novo Item
+\end{itemize}
+
+
+O código \LaTeX que gera esta lista é 
+
+\begin{verbatim}
+\begin{itemize}
+\item Primeiro item 
+\item Outro item 
+\item Novo Item
+\end{itemize} 
+\end{verbatim}
+
+
+
+
+\subsection{Listas personalizadas}
+
+Também se pode criar marcadores personalizados na lista tal como é mostrado a
+seguir
+
+\begin{itemize}
+\item [a)]Primeiro item 
+\item [b)]Outro item 
+\item [c)]Novo Item
+\end{itemize}
+
+
+O código \LaTeX que gera esta lista é 
+
+\begin{verbatim}
+\begin{itemize}
+\item [a)]Primeiro item 
+\item [b)]Outro item 
+\item [c)]Novo Item
+\end{itemize}
+\end{verbatim}
+
+\section{Inserindo fórmulas}
+
+É possível introduzir formulas matemáticas de diferentes formas. Dentro do
+texto, por exemplo pode-se colocar $\alpha = cos(\theta) + \log(x)$ com o comando
+
+\verb|$\alpha = cos(\theta)+ \log(x)$|
+
+Para que a fórmula aparece com destaque no texto, mas sem numeração deve-se
+colocar a formula utilizando \verb|$$\alpha = cos(\theta)+ \log(x)$$|. Para a fórmula
+acima aparecer em destaque  $$\alpha = cos(\theta) + \log(x)$$
+
+Equações numeradas podem ser criadas utilizado-se o ambiente equation. Veja os
+exemplo a seguir com o comando \LaTeX que gerou a equação mostrado em seguida.
+
+
+\begin{equation}
+  K_{m} = \sum_{i=1}^{m} i^2
+  \label{eq:FormulaX}
+\end{equation}
+%
+\begin{verbatim}
+\begin{equation}
+  K_{m} = \sum_{i=1}^{m} i^2
+  \label{eq:FormulaX}
+\end{equation}
+\end{verbatim}
+
+
+Várias equações como no exemplo da equação \ref{eq:FormulaY}
+\begin{eqnarray}
+x & = & 2\pi + b \nonumber\\
+	&	= & 2\pi + 30  	
+\label{eq:FormulaY}
+\end{eqnarray}
+
+Matrizes 
+
+$$det(X) = \left|\begin{array}{ccc} 
+1 & 2 & 3 \\
+4 & 5 & 6 \\
+7 & 8 & 9 \\
+\end{array} \right| 
+$$
+
+\begin{verbatim}
+$$det(X) = \left|\begin{array}{ccc} 
+1 & 2 & 3 \\
+4 & 5 & 6 \\
+7 & 8 & 9 \\
+\end{array} \right| 
+$$
+\end{verbatim}
+
+
+
+
+
+
+\section{Incluindo referências}
+
+Para incluir citações a outros trabalhos deve-se incluir o arquivo que contém as referências bibliográficas. Em geral este arquivo é incluído no arquivo de projeto como um último capítulo tal qual mostrado a seguir:
+
+\begin{verbatim}
+\begin{document}
+\maketitle
+\tableofcontents
+\listoffigures
+\listoftables
+\listadesimbolos
+\listadesiglas
+\include{Agradecimentos}
+%%% -------- incluindo capitulos que estão em arquivos separados
+\include{Introducao}
+\include{ExemploLatex}
+%%%% -------- incluindo o arquivo de referências bibliografica (referencias.bib)
+\bibliography{referencias}
+\end{document}
+\end{verbatim}
+
+\section{Citações de trabalhos}
+
+Os comandos \verb|\cite{chaveReferencia}| para citação \verb|\citeonline{chaveReferencia}|
+
+Na linhas a seguir vamos apresentar exemplos de citações com diferentes números de autores, para melhor visualização.
+
+Citação de trabalho com \textbf{um} autor: Um bom trabalho começo para aprender \LaTeX  é utilizar \cite{Knuth1984}.
+
+Citação  de trabalho com \textbf{dois} autores: Um bom livro de processamento de imagens \cite{Gonzales2000}.
+
+Citação  de trabalho com \textbf{três} autores ou mais: Trabalho com 3 autores \cite{Pereira2001}. Trabalho de tomografia no campo (4 autores) \cite{macedo2002wood}
+
+Nas próximas linhas vamos discutir como citar trabalhos de outras formas
+
+Citação on line. No trabalho desenvolvido por \citeonline{Knuth1984} pode-se encontrar alguma documentação importante a respeito do ambiente Latex. 
+
+Um exemplo do uso de apud \apud{Unser1997}{macedo2002wood}
+
+
+\section{Criando listas de índices}
+
+A criação de listas em \LaTeX é muito simples 
+
+Para criar um sumário pode-se utilizar o comando \verb|\tableofcontents|.
+
+Para criar uma lista de figuras deve-se utilizar o comando \verb|\listoffigures|.
+
+Para criar uma lista de tabelas deve-se utilizar o comando \verb|\listoftables|.
+
+Para criar um resumo pode-se utilizar o comando 
+\begin{verbatim}
+\begin{abstract}
+Texto do resumo
+\end{abstract}
+\end{verbatim}
+
+\section{Personalizando a monografia}
+
+\subsection{Ajustando titulo, orientador e autor}
+
+Comando para ajustar o título: 
+
+\noindent
+\verb|\title{Teste de escrita de monografia para apresentação na Especialização}|
+
+Comando para ajustar o nome do orientador
+
+\verb|\orientador{Prof. Dr. Fulano de Tal}|
+
+Comando para ajustar o autor
+
+\verb|\author{Nome do autor}|
+
+
+
