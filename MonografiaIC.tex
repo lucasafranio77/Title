@@ -1,0 +1,189 @@
+%% % para TCC edite arquivo /configs/preambuloTCC
+\input{./configs/preambuloTCC}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%														    %
+% INFORMAÇÕES SOBRE ORIENTADO E ORIENTADOR DO TRABALHO		%
+%														    %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Título do trabalho
+\titulo{Título do Trabalho de Conclusão de Curso}
+
+% Nome do autor do trabalho
+\autor{Nome do autor}
+
+% Exemplo de orientador de orientador e co-orientador (caso se aplique é 
+% só descomentar a linha)
+\orientador[Orientador:]{Prof. Dr. Fulano de Tal}
+
+% Descomente se seu trabalho tem coorientador
+% \coorientador[Coorientadora:]{Profa. Dra. Maria das Dores}
+
+%%%%%%%%%%%%%%%%%%
+%
+%	MEMBROS DA BANCA DE AVALIAÇÃO DO TRABALHO
+%
+%%%%%%%%%%%%%%
+% Avaliador externo 
+\PrimeiroMembroBanca{\textbf{Prof. Dr. Mauricio Fernando Lima Pereira}}{Instituto de Computação - UFMT}
+% Avaliador externo 
+\SegundoMembroBanca{\textbf{Profa. Dra. Andreia Gentil Bonfante}}{Instituto de Computação - UFMT}
+% Terceiro Avaliador (quando necessário)
+%\TerceiroMembroBanca{\textbf{Prof. Dr. Josiel Maimone Figueiredo}}{Instituto de Computação - UFMT}
+
+%% Data da defesa final do trabalho ( para preparação da folha de aprovação )
+\DataDefesa{10}{de Dezembro}{2017}
+
+
+\input{./configs/pdfindex}
+
+%% iniciando o documento
+\begin{document}
+% Retira espaço extra obsoleto entre as frases.
+% \frenchspacing 
+
+
+
+% % % % % % %
+%
+%	ELEMENTOS PRÉ-TEXTUAIS
+%
+% % % % % % %
+
+% descomente esse input caso esteja fazendo seu TCC
+%\input{./configs/configTCC}
+%
+% e depois edite os arquivos :
+%	- dedicatoria.tex
+%	- agradecimentos.tex, 
+%	- epigrafe.tex 
+%	- resumo.tex 
+%	- abstract.tex
+
+
+% ---
+% inserir o sumario
+% ---
+\pdfbookmark[0]{\contentsname}{toc}
+\tableofcontents*
+\cleardoublepage
+% ---
+
+% ---
+% inserir lista de figuras
+% ---
+\pdfbookmark[0]{\listfigurename}{lof}
+\listoffigures*
+\cleardoublepage
+
+
+% ---
+% inserir lista de tabelas
+% ---
+\pdfbookmark[0]{\listtablename}{lot}
+\listoftables*
+\cleardoublepage
+
+
+
+% ---
+% inserir lista de abreviaturas e siglas
+% organizar manualmente a ordem alfabetica
+% ---
+\begin{siglas}
+	\item [ABNT] Associação Brasileira de Normas Técnicas
+	\item [ARM] \textit{Advanced RISC Machine}
+	\item [AT] Transformada de Anscombe
+	\item [IC]Instituto de Computação
+	\item [ULA] Unidade Lógica e Aritmética
+	\item[UFMT]Universidade Federal de Mato Grosso
+\end{siglas}
+% ---
+
+
+% ---
+% inserir lista de símbolos
+% ---
+\begin{simbolos}
+	\item[$ \Gamma $] Letra grega Gama
+	\item[$ \Lambda $] Lambda
+	\item[$ \zeta $] Letra grega minúscula zeta
+	\item[$ \in $] Pertence
+	\item [$\Delta t$] Variação de tempo	
+	\item [$\omega_\alpha$]Variação do ângulo no sentido no passo $\alpha$	%
+	\item [$P(\phi,t)$] Probabilidade de detecção de $\phi$ fótons em um tempo t de exposição
+\end{simbolos}
+
+
+% ----------------------------------------------------------
+% ELEMENTOS TEXTUAIS (não remover ou alterar
+% ----------------------------------------------------------
+\textual
+\setcounter{page}{1}
+\pagenumbering{arabic}
+
+
+%%%%%%%%%%%%%%%
+%
+%	Início dos capítulos 
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% iniciando a inclusão de capítulos
+% pode-se organizar em arquivos .tex separados
+% como apresenta o exemplo
+\include{introducao}
+% 
+\include{fundamentacao}
+
+\include{seutrabalho}
+
+\include{resultados}
+
+\include{conclusao}
+
+% ----------------------------------------------------------
+% ELEMENTOS PÓS-TEXTUAIS
+% ----------------------------------------------------------
+\postextual
+
+\bibliography{refs}
+
+
+% ----------------------------------------------------------
+% Apêndices
+% ----------------------------------------------------------
+
+% ---
+% Inicia os apêndices
+% ---
+\begin{apendicesenv}
+	
+\include{apendice1}
+
+\include{apendice2}
+
+\end{apendicesenv}
+
+% ----------------------------------------------------------
+% Anexo
+% ----------------------------------------------------------
+
+% ---
+% Inicia os anexos
+% ---
+\begin{anexosenv}
+
+% ---
+\include{dicasLatex}
+% ---
+%\lipsum[30]
+
+
+\end{anexosenv}
+
+
+\end{document}
+
