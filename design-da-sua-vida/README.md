@@ -6,7 +6,15 @@ Aplicação web para aplicar, no dia a dia, as ferramentas do livro **O Design d
 
 Não precisa instalar nada: basta abrir o arquivo `index.html` no navegador (Chrome, Edge, Firefox ou Safari).
 
-Para usar no celular ou em vários lugares, você pode publicar a pasta em qualquer hospedagem estática (por exemplo, GitHub Pages). Os dados continuam salvos só no navegador de cada dispositivo. Para levá-los de um lugar para outro, use **Exportar** e **Importar**.
+Para usar no celular ou em vários lugares, você pode publicar a pasta em qualquer hospedagem estática (por exemplo, GitHub Pages). Nesse caso, os dados continuam salvos só no navegador de cada dispositivo. Para levá-los de um lugar para outro, use **Exportar** e **Importar**.
+
+### Como Artifact do Claude
+
+O mesmo código também roda como Artifact no claude.ai. Nesse modo:
+
+- a IA usa a conta Claude de quem está usando o app, sem chave de API;
+- os dados ficam salvos na sua conta (visíveis só para você), então aparecem no celular e no computador;
+- o backup em **Exportar** é salvo pelo próprio Claude, que pede confirmação.
 
 ## Etapas
 
@@ -37,16 +45,17 @@ Cada etapa tem uma explicação do conceito, um passo a passo, um exemplo, dúvi
 
 A IA recebe tudo o que você preencheu e responde como um coach do método do livro. Os modos disponíveis são: avaliação completa, plano de ação de 30 dias, comparação dos Planos de Odisseia, planejamento de protótipos, revisão semanal e ajuda para decidir. Também dá para conversar livremente.
 
-Há duas formas de usar:
+Há três formas de usar:
 
-1. **Direto no app**: em ⚙️ Configurações, cole uma chave da API da Anthropic (crie em [console.anthropic.com](https://console.anthropic.com/settings/keys)). O uso é cobrado pela Anthropic de acordo com o volume de texto. A chave fica salva só no seu navegador e é enviada apenas para a API da Anthropic.
-2. **Sem chave**: clique em **“Copiar para usar no Claude.ai”**. O pedido é copiado junto com todos os seus dados; é só colar numa conversa em [claude.ai](https://claude.ai).
+1. **Como Artifact do Claude**: a IA usa sua conta Claude, sem configuração.
+2. **Direto no app (arquivo local)**: em ⚙️ Configurações, cole uma chave da API da Anthropic (crie em [console.anthropic.com](https://console.anthropic.com/settings/keys)). O uso é cobrado pela Anthropic de acordo com o volume de texto. A chave fica salva só no seu navegador e é enviada apenas para a API da Anthropic.
+3. **Sem chave**: clique em **“Copiar para usar no Claude.ai”**. O pedido é copiado junto com todos os seus dados; é só colar numa conversa em [claude.ai](https://claude.ai).
 
 Modelo padrão: Claude Opus 5 (com Claude Sonnet 5 como opção mais barata).
 
 ## Privacidade
 
-- Os dados ficam no `localStorage` do navegador. Nenhum servidor próprio é usado.
+- Os dados ficam no `localStorage` do navegador. Nenhum servidor próprio é usado. Como Artifact, também ficam salvos na sua conta Claude, numa área privada só sua.
 - Os dados só saem do seu computador quando você usa a IA (e vão apenas para a API da Anthropic).
 - Faça backups de vez em quando com **Exportar**: limpar os dados do navegador apaga tudo.
 
@@ -58,7 +67,7 @@ design-da-sua-vida/
 ├── css/styles.css  # estilos (tema claro/escuro, responsivo, impressão)
 └── js/
     ├── steps.js    # conteúdo das etapas: explicações, exemplos, FAQ e campos
-    ├── ai.js       # prompts, chamada ao Claude (SDK oficial via CDN) e markdown
+    ├── ai.js       # prompts, chamada ao Claude (conta Claude no Artifact ou API) e markdown
     └── app.js      # interface, navegação, salvamento, tarefas e chat
 ```
 

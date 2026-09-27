@@ -1,10 +1,23 @@
 /*
- * Integração com o Claude: montagem do contexto, chamadas à API (SDK oficial
- * carregado do CDN, direto do navegador com a chave do próprio usuário)
- * e um renderizador de markdown simples e seguro para exibir as respostas.
+ * Integração com o Claude: montagem do contexto, chamadas à IA e um
+ * renderizador de markdown simples e seguro para exibir as respostas.
+ *
+ * Duas formas de falar com o Claude:
+ * - como Artifact do Claude: capability "sample", que usa a conta Claude
+ *   da própria pessoa (sem chave de API);
+ * - como arquivo local: API da Anthropic com a chave do usuário (SDK oficial
+ *   carregado do CDN, direto do navegador).
  */
 (function () {
   var SDK_URL = "https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk/+esm";
+  var MAX_JOURNAL_ROWS = 80; // registros do diário enviados à IA (os mais recentes)
+  var MAX_SAMPLE_BYTES = 60000; // o "sample" aceita até 64 KiB de texto
+
+  var sampleFn = null;
+  var sampleReady = (window.claude && typeof window.claude.use === "function")
+    ? window.claude.use("sample").then(function (s) { sampleFn = s; return s; }).catch(function () { return null; })
+    : Promise.resolve(null);
+  function hasSample() { return !!sampleFn; }
 
   var MODELS = [
     { id: "claude-opus-5", label: "Claude Opus 5 (recomendado)" },
@@ -108,13 +121,19 @@
         return field.columns.some(function (c) { return c.type !== "date" && String(row[c.id] || "").trim(); });
       });
       if (!rows.length) return null;
+      var total = rows.length;
+      var note = "";
+      if (field.newestFirst && rows.length > MAX_JOURNAL_ROWS) {
+        rows = rows.slice().sort(function (a, b) { return (b.data || "").localeCompare(a.data || ""); }).slice(0, MAX_JOURNAL_ROWS);
+        note = ", mostrando os " + MAX_JOURNAL_ROWS + " mais recentes";
+      }
       var lines = rows.map(function (row) {
         return "- " + field.columns
           .filter(function (c) { return String(row[c.id] || "").trim(); })
           .map(function (c) { return c.label + ": " + row[c.id]; })
           .join(" | ");
       });
-      return "**" + field.label + "** (" + rows.length + " itens)\n" + lines.join("\n");
+      return "**" + field.label + "** (" + total + " itens" + note + ")\n" + lines.join("\n");
     }
     if (field.type === "range") return "**" + field.label + ":** " + value + "/" + field.max;
     return "**" + field.label + ":** " + String(value).trim();
@@ -172,6 +191,7 @@
    * Retorna o texto final.
    */
   async function ask(opts) {
+    if (sampleFn) return askSample(opts);
     var settings = opts.settings;
     if (!settings.apiKey) throw new Error("Configure sua chave da API da Anthropic em ⚙️ Configurações.");
     var Anthropic = await loadSdk();
@@ -196,6 +216,8 @@
       stream = client.messages.stream(params);
     }
 
+    if (opts.signal) opts.signal.addEventListener("abort", function () { stream.abort(); });
+
     var acc = "";
     stream.on("text", function (delta) {
       acc += delta;
@@ -206,6 +228,7 @@
     try {
       message = await stream.finalMessage();
     } catch (e) {
+      if (opts.signal && opts.signal.aborted) throw new Error("");
       throw new Error(friendlyError(e));
     }
     if (message.stop_reason === "refusal") {
@@ -214,6 +237,44 @@
     var text = message.content.filter(function (b) { return b.type === "text"; }).map(function (b) { return b.text; }).join("");
     if (message.stop_reason === "max_tokens") text += "\n\n_(resposta cortada por tamanho — peça para continuar)_";
     return text;
+  }
+
+  // Pela conta Claude da pessoa (Artifact). Não há system prompt: as
+  // instruções e os dados vão num primeiro turno do usuário.
+  async function askSample(opts) {
+    var intro = { role: "user", content: opts.system + "\n\nResponda à conversa a seguir." };
+    var msgs = opts.messages.slice();
+    var bytes = function (list) { return new Blob([list.map(function (m) { return m.content; }).join("")]).size; };
+    while (msgs.length > 1 && bytes([intro].concat(msgs)) > MAX_SAMPLE_BYTES) msgs.shift();
+    while (msgs.length && msgs[0].role !== "user") msgs.shift();
+    try {
+      var result = await sampleFn([intro].concat(msgs), {
+        cache: false,
+        signal: opts.signal,
+        onText: function (u) { if (opts.onText) opts.onText(u.text); }
+      });
+      return result.truncated ? result.text + "\n\n_(resposta cortada por tamanho — peça para continuar)_" : result.text;
+    } catch (e) {
+      throw new Error(sampleErrorMessage(e && e.code));
+    }
+  }
+
+  function sampleErrorMessage(code) {
+    switch (code) {
+      case "cancelled": return "";
+      case "not_granted":
+      case "sampling_disabled":
+      case "not_declared":
+      case "capability_disabled":
+      case "capability_removed":
+        return "A IA não foi autorizada nesta página. Recarregue e permita o uso do Claude quando ele pedir.";
+      case "rate_limited": return "Limite de uso do Claude atingido. Espere um pouco e tente de novo.";
+      case "session_expired": return "Sua sessão expirou. Entre novamente no Claude.";
+      case "refused": return "A IA não pôde responder a esse pedido. Tente reformular.";
+      case "prompt_too_large": return "Seus dados ficaram grandes demais para enviar de uma vez. Comece uma nova conversa.";
+      case "empty_completion": return "A IA não respondeu nada. Tente pedir de outro jeito.";
+      default: return "Falha temporária ao falar com a IA. Tente novamente.";
+    }
   }
 
   function friendlyError(e) {
@@ -305,6 +366,8 @@
   }
 
   window.AI = {
+    hasSample: hasSample,
+    sampleReady: sampleReady,
     MODELS: MODELS,
     MODES: MODES,
     ask: ask,

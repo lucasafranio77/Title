@@ -1,4 +1,8 @@
-/* O Design da Sua Vida – app principal (sem dependências, dados salvos no navegador). */
+/*
+ * O Design da Sua Vida – app principal, sem dependências.
+ * Os dados ficam no navegador (localStorage) e, quando o app roda como
+ * Artifact do Claude, também na conta da pessoa (capability "db").
+ */
 (function () {
   var STORAGE_KEY = "design-da-sua-vida:v1";
   var SETTINGS_KEY = "design-da-sua-vida:settings";
@@ -44,15 +48,128 @@
     clearTimeout(saveTimer);
     var doSave = function () {
       var ok = safeSet(STORAGE_KEY, JSON.stringify(state));
-      flashSaved(ok);
+      flashSaved(ok || !!remote);
+      scheduleRemotePush();
     };
     if (immediate) doSave(); else saveTimer = setTimeout(doSave, 400);
+  }
+
+  // ---------- Salvamento na conta (quando roda como Artifact) ----------
+
+  // O estado é dividido em documentos menores (cada um tem limite de tamanho).
+  var PARTS = ["caderno", "diario", "tarefas", "conversa"];
+  var remote = null; // { db, base }
+  var lastWritten = {};
+  var remoteTimer = null;
+  var writing = false;
+  var writeAgain = false;
+  var remoteErrorShown = false;
+
+  function capability(name) {
+    if (!window.claude || typeof window.claude.use !== "function") return Promise.resolve(null);
+    return window.claude.use(name).catch(function () { return null; });
+  }
+
+  function splitState(s) {
+    var fields = Object.assign({}, s.fields);
+    var diario = fields.d_registros || [];
+    delete fields.d_registros;
+    return {
+      caderno: { fields: fields, done: s.done },
+      diario: { rows: diario },
+      tarefas: { actions: s.actions },
+      conversa: { chat: s.chat.slice(-40) }
+    };
+  }
+
+  function hasAnyData(s) {
+    return Object.keys(s.fields).length > 0 || s.actions.length > 0 || s.chat.length > 0;
+  }
+
+  async function connectRemote() {
+    var caps = await Promise.all([capability("db"), capability("user")]);
+    var db = caps[0], user = caps[1];
+    if (!db || !user) return;
+    var id = await user.id().catch(function () { return null; });
+    if (!id) return;
+    var base = "data/users/" + id + "/";
+    var snaps;
+    try {
+      snaps = await Promise.all(PARTS.map(function (p) { return db.doc(base + p).get(); }));
+    } catch (e) {
+      return;
+    }
+    remote = { db: db, base: base };
+    var cad = snaps[0];
+    var remoteData = {};
+    snaps.forEach(function (snap, i) { if (snap.exists) remoteData[PARTS[i]] = JSON.parse(JSON.stringify(snap.data())); });
+    var remoteNewer = cad.exists && (!state.updatedAt || (remoteData.caderno.updatedAt || "") > state.updatedAt);
+    if (remoteNewer) {
+      var r = remoteData;
+      var fields = Object.assign({}, r.caderno.fields || {});
+      if (r.diario) fields.d_registros = r.diario.rows || [];
+      state = Object.assign(emptyState(), {
+        fields: fields,
+        done: r.caderno.done || {},
+        actions: (r.tarefas && r.tarefas.actions) || [],
+        chat: (r.conversa && r.conversa.chat) || [],
+        updatedAt: r.caderno.updatedAt
+      });
+      safeSet(STORAGE_KEY, JSON.stringify(state));
+      var parts = splitState(state);
+      PARTS.forEach(function (p) { if (r[p]) lastWritten[p] = JSON.stringify(parts[p]); });
+      rerenderKeepingScroll();
+    } else if (hasAnyData(state)) {
+      pushRemote();
+    }
+    updateStorageNote();
+  }
+
+  function scheduleRemotePush() {
+    if (!remote) return;
+    clearTimeout(remoteTimer);
+    remoteTimer = setTimeout(pushRemote, 1200);
+  }
+
+  // Grava só as partes que mudaram, uma escrita de cada vez.
+  async function pushRemote() {
+    if (!remote) return;
+    if (writing) { writeAgain = true; return; }
+    writing = true;
+    try {
+      var parts = splitState(state);
+      var changed = PARTS.filter(function (p) { return lastWritten[p] !== JSON.stringify(parts[p]); });
+      if (changed.length && changed.indexOf("caderno") < 0) changed.unshift("caderno");
+      for (var i = 0; i < changed.length; i++) {
+        var p = changed[i];
+        var json = JSON.stringify(parts[p]);
+        await remote.db.doc(remote.base + p).set(Object.assign({ updatedAt: state.updatedAt }, parts[p]));
+        lastWritten[p] = json;
+      }
+    } catch (e) {
+      if (!remoteErrorShown) {
+        remoteErrorShown = true;
+        toast(e && e.code === "invalid_argument"
+          ? "Não foi possível salvar na sua conta (dados grandes demais ou sem permissão). Seus dados continuam salvos neste navegador."
+          : "Não foi possível salvar na sua conta agora. Seus dados continuam salvos neste navegador.", true);
+      }
+    } finally {
+      writing = false;
+      if (writeAgain) { writeAgain = false; pushRemote(); }
+    }
+  }
+
+  function updateStorageNote() {
+    var el = document.getElementById("storage-note");
+    if (el) el.textContent = remote
+      ? "Seus dados ficam salvos na sua conta Claude, visíveis só para você, e também neste navegador."
+      : "Seus dados ficam salvos só neste navegador. Exporte um backup de vez em quando.";
   }
 
   function flashSaved(ok) {
     var el = document.getElementById("save-status");
     if (!el) return;
-    el.textContent = ok ? "Salvo ✓" : "Não foi possível salvar neste navegador";
+    el.textContent = ok ? (remote ? "Salvo na sua conta ✓" : "Salvo ✓") : "Não foi possível salvar neste navegador";
     el.classList.toggle("error", !ok);
     el.classList.add("show");
     clearTimeout(flashSaved._t);
@@ -96,7 +213,7 @@
     var h = location.hash.replace(/^#\/?/, "");
     if (!h || h === "inicio") return { view: "inicio" };
     if (h === "ia") return { view: "ia" };
-    var m = h.match(/^etapa\/(.+)$/);
+    var m = h.match(/^etapa-(.+)$/);
     if (m && STEPS.some(function (s) { return s.id === m[1]; })) return { view: "etapa", id: m[1] };
     return { view: "inicio" };
   }
@@ -125,7 +242,7 @@
     items.push(navItem("#inicio", "⌂", "Início", "Painel e dia a dia", route.view === "inicio", null));
     STEPS.forEach(function (s) {
       var p = state.done[s.id] ? 100 : stepProgress(s);
-      items.push(navItem("#etapa/" + s.id, String(s.num), s.title, s.short, route.view === "etapa" && route.id === s.id, p, state.done[s.id]));
+      items.push(navItem("#etapa-" + s.id, String(s.num), s.title, s.short, route.view === "etapa" && route.id === s.id, p, state.done[s.id]));
     });
     items.push(navItem("#ia", "✦", "Avaliação com IA", "Avaliar e colocar em prática", route.view === "ia", null));
     document.getElementById("nav-list").innerHTML = items.join("");
@@ -154,7 +271,7 @@
     var html = [];
     html.push('<header class="page-head"><p class="eyebrow">Baseado no livro de Bill Burnett e Dave Evans</p>' +
       "<h1>O Design da Sua Vida</h1>" +
-      '<p class="lead">Um caderno de trabalho para aplicar o método no seu dia a dia. Preencha as etapas no seu ritmo — tudo fica salvo neste navegador — e, no final, use a IA para avaliar suas respostas e transformar tudo em um plano prático.</p></header>');
+      '<p class="lead">Um caderno de trabalho para aplicar o método no seu dia a dia. Preencha as etapas no seu ritmo (tudo fica salvo automaticamente) e, no final, use a IA para avaliar suas respostas e transformar tudo em um plano prático.</p></header>');
 
     html.push('<section class="card how-card"><h2>Como usar</h2><ol class="how-list">' +
       "<li><strong>Siga as etapas de 1 a 10.</strong> Cada uma tem uma explicação, um passo a passo, exemplos e dúvidas frequentes. Não precisa fazer tudo de uma vez.</li>" +
@@ -162,7 +279,7 @@
       "<li><strong>Finalize com a IA:</strong> a etapa <em>Avaliação com IA</em> lê tudo o que você escreveu, aponta padrões e cria um plano de ação com tarefas.</li>" +
       "<li><strong>Revise toda semana:</strong> marque suas tarefas, registre o diário e peça uma revisão semanal para a IA.</li>" +
       "</ol>" +
-      (nextStep ? '<a class="btn primary" href="#etapa/' + nextStep.id + '">' + (op ? "Continuar" : "Começar") + ": Etapa " + nextStep.num + " – " + esc(nextStep.title) + " →</a>"
+      (nextStep ? '<a class="btn primary" href="#etapa-' + nextStep.id + '">' + (op ? "Continuar" : "Começar") + ": Etapa " + nextStep.num + " – " + esc(nextStep.title) + " →</a>"
         : '<a class="btn primary" href="#ia">Todas as etapas concluídas — ir para a Avaliação com IA →</a>') +
       "</section>");
 
@@ -186,7 +303,7 @@
             var v = Number(state.fields[g[1]] || 0);
             return '<div class="gauge"><div class="gauge-track"><span style="height:' + v * 10 + '%"></span></div><strong>' + v + "</strong><span>" + g[0] + "</span></div>";
           }).join("") + "</div>"
-        : '<p class="muted">Preencha a <a href="#etapa/painel">Etapa 2 – Onde você está</a> para ver seu painel aqui.</p>') +
+        : '<p class="muted">Preencha a <a href="#etapa-painel">Etapa 2 – Onde você está</a> para ver seu painel aqui.</p>') +
       "</section>");
 
     // Tarefas
@@ -195,7 +312,7 @@
     // Etapas
     html.push('<section class="card"><h2>Etapas</h2><div class="step-grid">' + STEPS.map(function (s) {
       var p = state.done[s.id] ? 100 : stepProgress(s);
-      return '<a class="step-card" href="#etapa/' + s.id + '"><span class="step-num">' + s.num + "</span>" +
+      return '<a class="step-card" href="#etapa-' + s.id + '"><span class="step-num">' + s.num + "</span>" +
         '<span class="step-card-body"><strong>' + esc(s.title) + '</strong><span class="muted">' + esc(s.short) + "</span>" +
         '<span class="bar small"><span style="width:' + p + '%"></span></span></span>' +
         (state.done[s.id] ? '<span class="chip ok">Concluída</span>' : s.daily ? '<span class="chip">Dia a dia</span>' : "") + "</a>";
@@ -208,7 +325,7 @@
     var rows = (state.fields.d_registros || []).filter(function (r) { return r.atividade; });
     if (!rows.length) return "";
     var recent = rows.slice().sort(function (a, b) { return (b.data || "").localeCompare(a.data || ""); }).slice(0, 5);
-    return '<div class="journal-summary"><h3>Últimos registros <span class="muted">(' + rows.length + ' no total · <a href="#etapa/diario">ver todos</a>)</span></h3><ul>' +
+    return '<div class="journal-summary"><h3>Últimos registros <span class="muted">(' + rows.length + ' no total · <a href="#etapa-diario">ver todos</a>)</span></h3><ul>' +
       recent.map(function (r) {
         return "<li><span class=\"muted\">" + esc(fmtDate(r.data)) + "</span> " + esc(r.atividade) +
           ' <span class="pill">E ' + esc(String(r.engajamento ?? "–")) + "</span>" +
@@ -286,8 +403,8 @@
     html.push('<div class="step-footer">' +
       '<label class="check done-toggle"><input type="checkbox" data-action="toggle-done" data-step="' + step.id + '"' + (state.done[step.id] ? " checked" : "") + "><span>Marcar etapa como concluída</span></label>" +
       '<div class="step-nav">' +
-      (prev ? '<a class="btn" href="#etapa/' + prev.id + '">← ' + esc(prev.title) + "</a>" : '<a class="btn" href="#inicio">← Início</a>') +
-      (next ? '<a class="btn primary" href="#etapa/' + next.id + '">' + esc(next.title) + " →</a>" : '<a class="btn primary" href="#ia">Avaliação com IA →</a>') +
+      (prev ? '<a class="btn" href="#etapa-' + prev.id + '">← ' + esc(prev.title) + "</a>" : '<a class="btn" href="#inicio">← Início</a>') +
+      (next ? '<a class="btn primary" href="#etapa-' + next.id + '">' + esc(next.title) + " →</a>" : '<a class="btn primary" href="#ia">Avaliação com IA →</a>') +
       "</div></div>");
     return html.join("");
   }
@@ -398,27 +515,29 @@
       "<li>Continue a conversa: peça para detalhar, simplificar, ou para ajudar com uma tarefa específica.</li>" +
       "<li>Volte toda semana para a <strong>Revisão semanal</strong> — a IA sempre vê seus dados mais recentes.</li>" +
       "</ol>" +
-      '<p class="muted small">Para usar a IA diretamente aqui, você precisa de uma chave da API da Anthropic (em ⚙️ Configurações). ' +
-      "Sem chave? Use o botão <strong>“Copiar para usar no Claude.ai”</strong>: ele copia o pedido com todos os seus dados para você colar numa conversa em claude.ai.</p>" +
+      (AI.hasSample()
+        ? '<p class="muted small">A IA usa a sua conta Claude. Na primeira vez, o Claude pede sua autorização.</p>'
+        : '<p class="muted small">Para usar a IA diretamente aqui, você precisa de uma chave da API da Anthropic (em ⚙️ Configurações). ' +
+          "Sem chave? Use o botão <strong>“Copiar para usar no Claude.ai”</strong>: ele copia o pedido com todos os seus dados para você colar numa conversa em claude.ai.</p>") +
       "</div></details>");
 
     if (incomplete.length) {
       html.push('<div class="notice">Algumas etapas ainda estão com pouco conteúdo: ' + incomplete.map(function (s) {
-        return '<a href="#etapa/' + s.id + '">' + s.num + ". " + esc(s.title) + "</a>";
+        return '<a href="#etapa-' + s.id + '">' + s.num + ". " + esc(s.title) + "</a>";
       }).join(", ") + ". A IA consegue ajudar mesmo assim, mas a avaliação fica melhor quanto mais você preencher.</div>");
     }
 
     html.push('<section class="card"><h2>O que você quer fazer?</h2><div class="mode-grid">' + AI.MODES.map(function (m) {
       return '<div class="mode"><strong>' + esc(m.label) + '</strong><span class="muted">' + esc(m.desc) + "</span>" +
         '<div class="mode-actions"><button class="btn primary small" data-action="run-mode" data-mode="' + m.id + '">Pedir à IA</button>' +
-        '<button class="btn small ghost" data-action="copy-mode" data-mode="' + m.id + '" title="Copia o pedido com seus dados para colar em claude.ai">Copiar para usar no Claude.ai</button></div></div>';
+        (AI.hasSample() ? "" : '<button class="btn small ghost" data-action="copy-mode" data-mode="' + m.id + '" title="Copia o pedido com seus dados para colar em claude.ai">Copiar para usar no Claude.ai</button>') + "</div></div>";
     }).join("") + "</div></section>");
 
     html.push('<section class="card chat-card"><div class="chat-head"><h2>Conversa</h2>' +
       (state.chat.length ? '<button class="btn small ghost" data-action="clear-chat">Nova conversa</button>' : "") + "</div>" +
       '<div class="chat" id="chat">' + (state.chat.length ? state.chat.map(renderMsg).join("") : '<p class="muted">Escolha uma opção acima ou escreva sua mensagem abaixo para começar.</p>') + "</div>" +
       '<form class="chat-form" data-action="send-chat"><textarea name="msg" rows="3" required placeholder="Escreva sua mensagem… (Ctrl+Enter para enviar)"></textarea>' +
-      '<div class="chat-form-actions">' + (settings.apiKey ? "" : '<span class="muted small">Configure sua chave em <a href="#" data-action="open-settings">⚙️ Configurações</a> para conversar aqui.</span>') +
+      '<div class="chat-form-actions">' + (aiAvailable() ? "" : '<span class="muted small">Configure sua chave em <a href="#" data-action="open-settings">⚙️ Configurações</a> para conversar aqui.</span>') +
       '<button class="btn primary" type="submit">Enviar</button></div></form></section>');
 
     html.push('<section class="card"><h2>Meu plano de ação</h2><p class="muted">Suas tarefas, vindas da IA ou adicionadas por você. Elas também aparecem na página inicial.</p>' + renderActions(false) + "</section>");
@@ -444,17 +563,22 @@
   }
 
   var busy = false;
+  var currentAbort = null;
   var helpOpenState = {};
+
+  function aiAvailable() { return AI.hasSample() || !!settings.apiKey; }
 
   async function sendToAI(userText, display) {
     if (busy) return;
-    if (!settings.apiKey) { openSettings("Para conversar com a IA aqui, adicione sua chave da API. Ou use “Copiar para usar no Claude.ai”."); return; }
+    if (!aiAvailable()) { openSettings("Para conversar com a IA aqui, adicione sua chave da API. Ou use “Copiar para usar no Claude.ai”."); return; }
     busy = true;
+    currentAbort = new AbortController();
     state.chat.push({ role: "user", content: userText, display: display || null });
     save(true);
     var chat = document.getElementById("chat");
     chat.innerHTML = state.chat.map(renderMsg).join("") +
-      '<div class="msg assistant pending"><div class="msg-body md" id="streaming"><p class="typing">Pensando<span>.</span><span>.</span><span>.</span></p></div></div>';
+      '<div class="msg assistant pending"><div class="msg-body md" id="streaming"><p class="typing">Pensando<span>.</span><span>.</span><span>.</span></p></div>' +
+      '<div class="msg-actions"><button class="btn small ghost" data-action="stop-ai">Parar</button></div></div>';
     scrollChatToEnd();
     setFormsDisabled(true);
     try {
@@ -462,6 +586,7 @@
         settings: settings,
         system: AI.systemPrompt(state),
         messages: state.chat.map(function (m) { return { role: m.role, content: m.content }; }),
+        signal: currentAbort.signal,
         onText: function (acc) {
           var el = document.getElementById("streaming");
           if (el) { el.innerHTML = AI.renderMarkdown(acc); scrollChatToEnd(); }
@@ -471,7 +596,8 @@
       save(true);
     } catch (e) {
       state.chat.pop(); // devolve a mensagem para o campo, para tentar de novo
-      toast(e.message, true);
+      save(true);
+      if (e.message) toast(e.message, true);
       var ta = document.querySelector(".chat-form textarea");
       if (ta && !display) ta.value = userText;
     } finally {
@@ -491,7 +617,7 @@
   async function askAboutStep(stepId, question, form) {
     var step = STEPS.find(function (s) { return s.id === stepId; });
     var out = document.getElementById("ask-answer");
-    if (!settings.apiKey) {
+    if (!aiAvailable()) {
       var prompt = AI.buildCopyPrompt(state, stepHelpRequest(step, question));
       copyText(prompt, "Pedido copiado! Cole numa conversa em claude.ai. (Para respostas aqui mesmo, configure sua chave em ⚙️.)");
       return;
@@ -508,7 +634,7 @@
       });
       out.innerHTML = AI.renderMarkdown(text);
     } catch (e) {
-      out.innerHTML = '<p class="error-text">' + esc(e.message) + "</p>";
+      out.innerHTML = e.message ? '<p class="error-text">' + esc(e.message) + "</p>" : "";
     } finally {
       btn.disabled = false;
     }
@@ -527,17 +653,31 @@
     dlg.querySelector("#set-msg").textContent = msg || "";
     dlg.querySelector("#set-msg").hidden = !msg;
     dlg.querySelector("#set-key").value = settings.apiKey;
+    dlg.querySelector("#set-api").hidden = AI.hasSample();
+    dlg.querySelector("#set-sample").hidden = !AI.hasSample();
     dlg.querySelector("#set-model").innerHTML = AI.MODELS.map(function (m) {
       return '<option value="' + m.id + '"' + (settings.model === m.id ? " selected" : "") + ">" + esc(m.label) + "</option>";
     }).join("");
     dlg.showModal();
   }
 
-  function exportData() {
-    var blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  async function exportData() {
+    var json = JSON.stringify(state, null, 2);
+    var filename = "design-da-sua-vida-" + today() + ".json";
+    var downloads = await capability("downloads");
+    if (downloads) {
+      try {
+        await downloads.save({ filename: filename, data: json });
+        toast("Backup salvo.");
+      } catch (e) {
+        if (e && e.code !== "declined") toast("Não foi possível salvar o arquivo. Tente de novo em instantes.", true);
+      }
+      return;
+    }
+    var blob = new Blob([json], { type: "application/json" });
     var a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "design-da-sua-vida-" + today() + ".json";
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 0);
@@ -550,11 +690,13 @@
       try {
         var data = JSON.parse(reader.result);
         if (!data || typeof data.fields !== "object") throw new Error("formato");
-        if (!confirm("Importar este arquivo vai substituir os dados atuais deste navegador. Continuar?")) return;
-        state = Object.assign(emptyState(), data);
-        save(true);
-        render();
-        toast("Dados importados.");
+        askConfirm("Importar este arquivo vai substituir todos os seus dados atuais. Continuar?", "Importar").then(function (ok) {
+          if (!ok) return;
+          state = Object.assign(emptyState(), data);
+          save(true);
+          render();
+          toast("Dados importados.");
+        });
       } catch (e) {
         toast("Arquivo inválido. Use um backup exportado por este app.", true);
       }
@@ -576,6 +718,18 @@
     ta.select();
     try { document.execCommand("copy"); } catch (e) { /* ignore */ }
     ta.remove();
+  }
+
+  // Confirmação dentro da página (o confirm() do navegador não funciona em Artifacts).
+  function askConfirm(message, okLabel) {
+    return new Promise(function (resolve) {
+      var dlg = document.getElementById("confirm-dlg");
+      dlg.querySelector("#confirm-msg").textContent = message;
+      dlg.querySelector("#confirm-ok").textContent = okLabel || "Confirmar";
+      dlg.returnValue = "";
+      dlg.addEventListener("close", function () { resolve(dlg.returnValue === "ok"); }, { once: true });
+      dlg.showModal();
+    });
   }
 
   function toast(msg, isError) {
@@ -653,10 +807,14 @@
       var rowsList = state.fields[el.dataset.list] || [];
       var target = findListRow(el.dataset.list, tr);
       var hasContent = target && Object.keys(target).some(function (k) { return k !== "_id" && k !== "data" && String(target[k]).trim(); });
-      if (hasContent && !confirm("Excluir este item?")) return;
-      state.fields[el.dataset.list] = rowsList.filter(function (r) { return r._id !== tr.dataset.row; });
-      save(true);
-      rerenderKeepingScroll();
+      var listId = el.dataset.list;
+      var removeRow = function () {
+        state.fields[listId] = rowsList.filter(function (r) { return r._id !== tr.dataset.row; });
+        save(true);
+        rerenderKeepingScroll();
+      };
+      if (hasContent) askConfirm("Excluir este item?", "Excluir").then(function (ok) { if (ok) removeRow(); });
+      else removeRow();
     } else if (action === "toggle-done") {
       state.done[el.dataset.step] = el.checked;
       save(true);
@@ -688,10 +846,16 @@
     } else if (action === "copy-msg") {
       copyText(state.chat[Number(el.dataset.index)].content);
     } else if (action === "clear-chat") {
-      if (!confirm("Começar uma nova conversa? A conversa atual será apagada (suas tarefas continuam).")) return;
-      state.chat = [];
-      save(true);
-      render();
+      askConfirm("Começar uma nova conversa? A conversa atual será apagada. Suas tarefas continuam.", "Nova conversa").then(function (ok) {
+        if (!ok) return;
+        state.chat = [];
+        save(true);
+        render();
+      });
+    } else if (action === "stop-ai") {
+      if (currentAbort) currentAbort.abort();
+    } else if (action === "close-dialog") {
+      el.closest("dialog").close();
     } else if (action === "open-settings") {
       e.preventDefault();
       openSettings();
@@ -699,17 +863,17 @@
       exportData();
     } else if (action === "import") {
       document.getElementById("import-file").click();
-    } else if (action === "print") {
-      window.print();
     } else if (action === "toggle-nav") {
       document.body.classList.toggle("nav-open");
     } else if (action === "reset") {
-      if (!confirm("Apagar TODOS os seus dados deste navegador? Faça um backup antes. Esta ação não pode ser desfeita.")) return;
-      state = emptyState();
-      save(true);
       document.getElementById("settings").close();
-      go("#inicio");
-      toast("Dados apagados.");
+      askConfirm("Apagar TODOS os seus dados? Exporte um backup antes. Esta ação não pode ser desfeita.", "Apagar tudo").then(function (ok) {
+        if (!ok) return;
+        state = emptyState();
+        save(true);
+        go("#inicio");
+        toast("Dados apagados.");
+      });
     }
   });
 
@@ -792,4 +956,8 @@
 
   window.addEventListener("hashchange", render);
   render();
+  updateStorageNote();
+  connectRemote();
+  // Quando a IA do Claude fica disponível, atualiza a tela (some o aviso de chave).
+  AI.sampleReady.then(function (s) { if (s) rerenderKeepingScroll(); });
 })();
