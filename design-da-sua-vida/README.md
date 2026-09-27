@@ -32,7 +32,7 @@ O mesmo código também roda como Artifact no claude.ai. Nesse modo:
 | 10 | Sua equipe | Apoiadores, mentores e time de design |
 | ✦ | Avaliação com IA | Avaliação, plano de 30 dias, revisão semanal e mais |
 
-Cada etapa tem uma explicação do conceito, um passo a passo, um exemplo, dúvidas frequentes e uma caixa para **perguntar à IA** como preencher.
+Cada etapa tem uma ilustração animada que mostra como a ferramenta funciona, uma explicação do conceito, um passo a passo, um exemplo, dúvidas frequentes e uma caixa para **perguntar à IA** como preencher.
 
 ## Uso no dia a dia
 
@@ -67,6 +67,7 @@ design-da-sua-vida/
 ├── css/styles.css  # estilos (tema claro/escuro, responsivo, impressão)
 └── js/
     ├── steps.js    # conteúdo das etapas: explicações, exemplos, FAQ e campos
+    ├── illustrations.js # ilustrações animadas (SVG) de cada etapa
     ├── ai.js       # prompts, chamada ao Claude (conta Claude no Artifact ou API) e markdown
     └── app.js      # interface, navegação, salvamento, tarefas e chat
 ```

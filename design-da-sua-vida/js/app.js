@@ -235,6 +235,21 @@
     main.focus({ preventScroll: true });
     window.scrollTo(0, 0);
     document.body.classList.remove("nav-open");
+    // Entrada da página só na troca de tela (não a cada re-renderização).
+    main.classList.remove("page-enter");
+    void main.offsetWidth;
+    main.classList.add("page-enter");
+    clearTimeout(render._t);
+    render._t = setTimeout(function () { main.classList.remove("page-enter"); }, 1200);
+  }
+
+  // Cabeçalho com texto à esquerda e ilustração animada à direita.
+  function pageHead(inner, illId) {
+    var ill = window.ILLUSTRATIONS && window.ILLUSTRATIONS[illId];
+    if (!ill) return '<header class="page-head">' + inner + "</header>";
+    return '<header class="page-head with-ill"><div class="head-text">' + inner + "</div>" +
+      '<figure class="ill" data-id="' + illId + '"><div class="ill-art">' + ill.svg + "</div>" +
+      "<figcaption><span>" + esc(ill.caption) + '</span><button type="button" class="ill-replay" data-action="replay-ill" aria-label="Ver a animação de novo" title="Ver de novo">↻</button></figcaption></figure></header>';
   }
 
   function renderNav(route) {
@@ -269,9 +284,9 @@
     var op = overallProgress();
     var nextStep = STEPS.find(function (s) { return !state.done[s.id]; });
     var html = [];
-    html.push('<header class="page-head"><p class="eyebrow">Baseado no livro de Bill Burnett e Dave Evans</p>' +
+    html.push(pageHead('<p class="eyebrow">Baseado no livro de Bill Burnett e Dave Evans</p>' +
       "<h1>O Design da Sua Vida</h1>" +
-      '<p class="lead">Um caderno de trabalho para aplicar o método no seu dia a dia. Preencha as etapas no seu ritmo (tudo fica salvo automaticamente) e, no final, use a IA para avaliar suas respostas e transformar tudo em um plano prático.</p></header>');
+      '<p class="lead">Um caderno de trabalho para aplicar o método no seu dia a dia. Preencha as etapas no seu ritmo (tudo fica salvo automaticamente) e, no final, use a IA para avaliar suas respostas e transformar tudo em um plano prático.</p>', "inicio"));
 
     html.push('<section class="card how-card"><h2>Como usar</h2><ol class="how-list">' +
       "<li><strong>Siga as etapas de 1 a 10.</strong> Cada uma tem uma explicação, um passo a passo, exemplos e dúvidas frequentes. Não precisa fazer tudo de uma vez.</li>" +
@@ -374,10 +389,10 @@
     var next = STEPS[idx + 1];
     var p = stepProgress(step);
     var html = [];
-    html.push('<header class="page-head"><p class="eyebrow">Etapa ' + step.num + " de " + STEPS.length + " · " + esc(step.chapter) + "</p>" +
+    html.push(pageHead('<p class="eyebrow">Etapa ' + step.num + " de " + STEPS.length + " · " + esc(step.chapter) + "</p>" +
       "<h1>" + esc(step.title) + "</h1>" +
       '<p class="lead">' + esc(step.short) + "</p>" +
-      '<div class="bar"><span style="width:' + p + '%"></span></div><p class="muted small">' + p + "% dos campos preenchidos" + (state.done[step.id] ? " · ✓ etapa concluída" : "") + "</p></header>");
+      '<div class="bar"><span style="width:' + p + '%"></span></div><p class="muted small">' + p + "% dos campos preenchidos" + (state.done[step.id] ? " · ✓ etapa concluída" : "") + "</p>", step.id));
 
     var saved = helpOpenState[step.id];
     var helpOpen = saved !== undefined ? saved : !AI.isFilled(stepFirstValue(step));
@@ -504,8 +519,8 @@
   function renderAI() {
     var html = [];
     var incomplete = STEPS.filter(function (s) { return !state.done[s.id] && stepProgress(s) < 50; });
-    html.push('<header class="page-head"><p class="eyebrow">Etapa final</p><h1>Avaliação com IA</h1>' +
-      '<p class="lead">Depois de preencher as etapas, converse com a IA para avaliar o que você escreveu, enxergar padrões e transformar tudo em ações concretas no seu dia a dia.</p></header>');
+    html.push(pageHead('<p class="eyebrow">Etapa final</p><h1>Avaliação com IA</h1>' +
+      '<p class="lead">Depois de preencher as etapas, converse com a IA para avaliar o que você escreveu, enxergar padrões e transformar tudo em ações concretas no seu dia a dia.</p>', "ia"));
 
     html.push('<details class="card help"' + (state.chat.length ? "" : " open") + '><summary><span class="help-icon">?</span> Como funciona esta etapa</summary><div class="help-body">' +
       "<ol class=\"how-list\">" +
@@ -755,7 +770,12 @@
       if (t.type === "range") {
         t.classList.remove("unset");
         var out = t.parentElement.querySelector("output");
-        if (out) out.textContent = t.value;
+        if (out) {
+          out.textContent = t.value;
+          out.classList.remove("bump");
+          void out.offsetWidth;
+          out.classList.add("bump");
+        }
       }
       var counter = document.querySelector('[data-counter="' + t.dataset.field + '"]');
       if (counter) {
@@ -819,11 +839,23 @@
       state.done[el.dataset.step] = el.checked;
       save(true);
       rerenderKeepingScroll();
-      if (el.checked) toast("Etapa concluída! 🎉");
+      if (el.checked) {
+        var toggle = document.querySelector(".done-toggle");
+        if (toggle) toggle.classList.add("celebrate");
+        toast("Etapa concluída! 🎉");
+      }
     } else if (action === "toggle-task") {
       var li = el.closest("[data-id]");
       var task = state.actions.find(function (a) { return a.id === li.dataset.id; });
-      if (task) { task.done = el.checked; task.doneAt = el.checked ? today() : null; save(true); rerenderKeepingScroll(); }
+      if (task) {
+        task.done = el.checked;
+        task.doneAt = el.checked ? today() : null;
+        save(true);
+        // Anima o risco na tarefa antes de reorganizar a lista.
+        li.classList.toggle("done", el.checked);
+        clearTimeout(li._t);
+        li._t = setTimeout(rerenderKeepingScroll, 650);
+      }
     } else if (action === "delete-task") {
       var li2 = el.closest("[data-id]");
       state.actions = state.actions.filter(function (a) { return a.id !== li2.dataset.id; });
@@ -852,6 +884,9 @@
         save(true);
         render();
       });
+    } else if (action === "replay-ill") {
+      var art = el.closest(".ill").querySelector(".ill-art");
+      art.innerHTML = art.innerHTML;
     } else if (action === "stop-ai") {
       if (currentAbort) currentAbort.abort();
     } else if (action === "close-dialog") {
@@ -889,6 +924,8 @@
       state.fields.d_registros = (state.fields.d_registros || []).concat([row]);
       save(true);
       rerenderKeepingScroll();
+      var first = document.querySelector(".journal-summary li");
+      if (first) first.classList.add("flash");
       toast("Registro adicionado ao diário.");
     } else if (action === "add-task") {
       var text = fd.get("text").trim();
@@ -927,10 +964,13 @@
     var route = currentRoute();
     renderNav(route);
     var main = document.getElementById("main");
+    var oldFig = main.querySelector(".ill");
     if (route.view === "inicio") main.innerHTML = renderHome();
     else if (route.view === "ia") main.innerHTML = renderAI();
     else main.innerHTML = renderStep(STEPS.find(function (s) { return s.id === route.id; }));
-    // mantém o painel de ajuda como o usuário deixou
+    // Mantém a mesma ilustração para a animação não recomeçar a cada edição.
+    var newFig = main.querySelector(".ill");
+    if (oldFig && newFig && oldFig.dataset.id === newFig.dataset.id) newFig.replaceWith(oldFig);
     window.scrollTo(0, y);
     var c2 = document.getElementById("chat");
     if (c2) c2.scrollTop = cy;
