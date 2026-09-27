@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>O Design da Sua Vida</title>
+  <meta name="description" content="Caderno de trabalho interativo baseado no livro O Design da Sua Vida, com avaliação e plano de ação com IA.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧭</text></svg>">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Pular para o conteúdo</a>
+
+  <header class="topbar">
+    <button class="icon-btn menu-btn" data-action="toggle-nav" aria-label="Abrir menu">☰</button>
+    <a href="#inicio" class="brand"><span aria-hidden="true">🧭</span> O Design da Sua Vida</a>
+  </header>
+
+  <div class="layout">
+    <nav class="sidebar" aria-label="Etapas">
+      <a href="#inicio" class="brand brand-side"><span aria-hidden="true">🧭</span> O Design da Sua Vida</a>
+      <div id="overall" class="overall"></div>
+      <ul id="nav-list" class="nav-list"></ul>
+      <div class="side-tools">
+        <button class="btn small ghost" data-action="export" title="Baixar backup dos seus dados (.json)">⬇ Exportar</button>
+        <button class="btn small ghost" data-action="import" title="Restaurar um backup">⬆ Importar</button>
+        <button class="btn small ghost" data-action="print" title="Imprimir ou salvar em PDF">🖨 Imprimir</button>
+        <button class="btn small ghost" data-action="open-settings">⚙️ Configurações</button>
+      </div>
+      <p class="side-note">Seus dados ficam salvos só neste navegador. Exporte um backup de vez em quando.</p>
+    </nav>
+    <div class="nav-backdrop" data-action="toggle-nav"></div>
+
+    <main id="main" tabindex="-1"></main>
+  </div>
+
+  <input type="file" id="import-file" accept="application/json,.json" hidden>
+
+  <dialog id="settings" aria-labelledby="set-title">
+    <form method="dialog" data-action="save-settings" class="settings-form">
+      <h2 id="set-title">Configurações</h2>
+      <p id="set-msg" class="notice" hidden></p>
+
+      <label for="set-key"><strong>Chave da API da Anthropic</strong></label>
+      <input id="set-key" name="key" type="password" autocomplete="off" placeholder="sk-ant-…">
+      <p class="muted small">
+        Usada para a IA responder aqui no app. Crie uma em <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a> (o uso é cobrado pela Anthropic, por volume de texto).
+        A chave fica salva <strong>apenas neste navegador</strong> e é enviada somente para a API da Anthropic.
+        Não use em computadores compartilhados.
+      </p>
+      <p class="muted small">Sem chave? Tudo continua funcionando, e nos pedidos à IA você pode usar “Copiar para usar no Claude.ai”.</p>
+
+      <label for="set-model"><strong>Modelo</strong></label>
+      <select id="set-model" name="model"></select>
+
+      <div class="dialog-actions">
+        <button type="button" class="btn danger ghost" data-action="reset">Apagar todos os dados</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn" onclick="this.closest('dialog').close()">Cancelar</button>
+        <button type="submit" class="btn primary">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="save-status" class="save-status" role="status" aria-live="polite"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/steps.js"></script>
+  <script src="js/ai.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
