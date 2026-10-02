@@ -284,8 +284,10 @@
     var op = overallProgress();
     var nextStep = STEPS.find(function (s) { return !state.done[s.id]; });
     var html = [];
-    html.push(pageHead('<p class="eyebrow">Baseado no livro de Bill Burnett e Dave Evans</p>' +
-      "<h1>O Design da Sua Vida</h1>" +
+    // Uma cópia pessoal pode definir window.APP_CONFIG = { name: "…" } antes dos scripts.
+    var owner = (window.APP_CONFIG && window.APP_CONFIG.name) || "";
+    html.push(pageHead('<p class="eyebrow">' + (owner ? "Caderno de " + esc(owner) + " · " : "") + "Baseado no livro de Bill Burnett e Dave Evans</p>" +
+      "<h1>" + (owner ? "Olá, " + esc(owner) + "!" : "O Design da Sua Vida") + "</h1>" +
       '<p class="lead">Um caderno de trabalho para aplicar o método no seu dia a dia. Preencha as etapas no seu ritmo (tudo fica salvo automaticamente) e, no final, use a IA para avaliar suas respostas e transformar tudo em um plano prático.</p>', "inicio"));
 
     html.push('<section class="card how-card"><h2>Como usar</h2><ol class="how-list">' +

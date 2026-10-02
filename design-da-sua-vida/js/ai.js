@@ -169,8 +169,13 @@
     return out.join("\n");
   }
 
+  function coachPrompt() {
+    var name = window.APP_CONFIG && window.APP_CONFIG.name;
+    return name ? COACH_PROMPT + "\n\nVocê está conversando com " + name + ". Chame a pessoa pelo nome." : COACH_PROMPT;
+  }
+
   function systemPrompt(state) {
-    return COACH_PROMPT + "\n\n<dados_da_pessoa>\n" + buildSnapshot(state) + "\n</dados_da_pessoa>";
+    return coachPrompt() + "\n\n<dados_da_pessoa>\n" + buildSnapshot(state) + "\n</dados_da_pessoa>";
   }
 
   // ---------- Chamada à API ----------
@@ -289,7 +294,7 @@
 
   // Monta um texto único para colar no Claude.ai (para quem não tem chave da API).
   function buildCopyPrompt(state, request) {
-    return COACH_PROMPT + "\n\n<dados_da_pessoa>\n" + buildSnapshot(state) + "\n</dados_da_pessoa>\n\n" + request;
+    return coachPrompt() + "\n\n<dados_da_pessoa>\n" + buildSnapshot(state) + "\n</dados_da_pessoa>\n\n" + request;
   }
 
   // ---------- Markdown seguro (escapa HTML antes de formatar) ----------
