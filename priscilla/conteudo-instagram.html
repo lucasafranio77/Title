@@ -1,0 +1,697 @@
+<title>Caderno de Conteúdo da Priscilla</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&family=Young+Serif&display=swap">
+<style>
+/* Layout: caderneta da gestante — header de identificação, abas como divisórias do caderno, cada aba = prompt (recolhível) + resultado pronto para copiar */
+:root {
+  --bg: #F6F2F5;
+  --paper: #FFFFFF;
+  --ink: #2B1D2A;
+  --muted: #6F5E6D;
+  --line: #E6DCE3;
+  --berry: #9E2A5E;
+  --berry-soft: #F6E4EC;
+  --on-berry: #FFFFFF;
+  --teal: #22706E;
+  --teal-soft: #E1F0EE;
+  --warn: #8A5A00;
+  --warn-soft: #FBF0D9;
+  --f-display: "Young Serif", Georgia, "Times New Roman", serif;
+  --f-body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "DM Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #171116; --paper: #221921; --ink: #F2E8EF; --muted: #B9A6B5; --line: #3A2C37;
+    --berry: #EF7BAA; --berry-soft: #3A1E2C; --on-berry: #2A0F1C;
+    --teal: #72C7C2; --teal-soft: #163130; --warn: #F2C46B; --warn-soft: #3A2E14;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #171116; --paper: #221921; --ink: #F2E8EF; --muted: #B9A6B5; --line: #3A2C37;
+  --berry: #EF7BAA; --berry-soft: #3A1E2C; --on-berry: #2A0F1C;
+  --teal: #72C7C2; --teal-soft: #163130; --warn: #F2C46B; --warn-soft: #3A2E14;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 16px;
+  line-height: 1.55;
+  padding-inline: 16px;
+  padding-block: 0 64px;
+}
+.wrap { max-width: 920px; margin-inline: auto; }
+
+/* Header */
+.id-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px 24px;
+  align-items: end;
+  padding-block: 32px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.eyebrow {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--berry);
+}
+h1 {
+  font-family: var(--f-display);
+  font-weight: 400;
+  font-size: clamp(30px, 6vw, 46px);
+  line-height: 1.08;
+  margin: 6px 0 8px;
+  text-wrap: balance;
+}
+.lede { margin: 0; color: var(--muted); max-width: 60ch; }
+.fields {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  font-size: 13px;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px dashed var(--line);
+  border-radius: 6px;
+  background: var(--paper);
+  min-width: 0;
+}
+.fields dt { font-family: var(--f-mono); color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; padding-top: 2px; }
+.fields dd { margin: 0; }
+@media (max-width: 640px) { .id-card { grid-template-columns: 1fr; } }
+
+/* Tabs */
+.tabs {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 5;
+  background: var(--bg);
+  margin-inline: -16px;
+  padding: 12px 16px 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.tablist {
+  display: flex;
+  gap: 4px;
+  border-bottom: 2px solid var(--berry);
+  min-width: max-content;
+}
+.tab {
+  appearance: none;
+  border: 1px solid var(--line);
+  border-bottom: none;
+  background: var(--paper);
+  color: var(--muted);
+  font: 600 14px/1 var(--f-body);
+  padding: 10px 14px 11px;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.tab .n { font-family: var(--f-mono); font-weight: 500; font-size: 11px; opacity: .8; }
+.tab:hover { color: var(--ink); }
+.tab[aria-selected="true"] { background: var(--berry); border-color: var(--berry); color: var(--on-berry); }
+.tab:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+
+/* Panels */
+.panel { padding-top: 28px; display: grid; gap: 24px; }
+.panel h2 {
+  font-family: var(--f-display);
+  font-weight: 400;
+  font-size: clamp(24px, 4.4vw, 32px);
+  line-height: 1.15;
+  margin: 0;
+  text-wrap: balance;
+}
+.panel h3 { font-size: 13px; font-family: var(--f-mono); font-weight: 500; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 10px; }
+.panel-head { display: grid; gap: 8px; }
+.panel-head p { margin: 0; color: var(--muted); max-width: 65ch; }
+
+details.prompt {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+details.prompt summary {
+  cursor: pointer;
+  padding: 12px 16px;
+  font-weight: 600;
+  font-size: 14px;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+details.prompt summary::-webkit-details-marker { display: none; }
+details.prompt summary::after { content: "ver"; font-family: var(--f-mono); font-weight: 400; font-size: 12px; color: var(--berry); }
+details.prompt[open] summary::after { content: "fechar"; }
+.prompt-body { padding: 0 16px 16px; font-size: 15px; }
+.prompt-body blockquote { margin: 0; padding-left: 14px; border-left: 2px solid var(--line); color: var(--muted); font-style: italic; }
+.var { font-style: normal; background: var(--teal-soft); color: var(--teal); padding: 1px 6px; border-radius: 4px; font-weight: 600; }
+
+.note {
+  font-size: 14px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--warn-soft);
+  color: var(--ink);
+  border: 1px solid transparent;
+}
+.note b { color: var(--warn); }
+
+/* Lists of copyable lines */
+.lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.line {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: start;
+  padding: 14px 14px 14px 16px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.line .idx { font-family: var(--f-mono); font-size: 12px; color: var(--berry); padding-top: 4px; font-variant-numeric: tabular-nums; }
+.line .txt { min-width: 0; }
+.line .main { font-weight: 600; font-size: 17px; line-height: 1.35; }
+.line .sub { color: var(--muted); font-size: 14px; margin-top: 4px; }
+.meta { font-family: var(--f-mono); font-size: 11px; color: var(--muted); margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px; }
+.pill { display: inline-block; font-family: var(--f-mono); font-size: 11px; padding: 2px 8px; border-radius: 99px; background: var(--berry-soft); color: var(--berry); }
+.pill.teal { background: var(--teal-soft); color: var(--teal); }
+
+.copy {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  font: 500 12px/1 var(--f-mono);
+  padding: 7px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.copy:hover { color: var(--berry); border-color: var(--berry); }
+.copy.ok { color: var(--teal); border-color: var(--teal); }
+
+/* Trend grid */
+.trends { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 8px; list-style: none; padding: 0; margin: 0; }
+.trends li { padding: 12px 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); font-size: 14px; }
+.trends b { display: block; font-size: 15px; margin-bottom: 2px; }
+
+/* Idea cards */
+.ideas { display: grid; gap: 14px; }
+.idea {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 18px;
+  display: grid;
+  gap: 12px;
+}
+.idea-top { display: flex; justify-content: space-between; gap: 12px; align-items: start; }
+.idea h4 { font-family: var(--f-display); font-weight: 400; font-size: 21px; line-height: 1.2; margin: 0; text-wrap: balance; }
+.hook {
+  font-weight: 700;
+  font-size: 17px;
+  padding: 10px 12px;
+  background: var(--berry-soft);
+  color: var(--ink);
+  border-radius: 6px;
+}
+.kv { display: grid; grid-template-columns: 120px 1fr; gap: 6px 14px; font-size: 15px; margin: 0; }
+.kv dt { font-family: var(--f-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); padding-top: 3px; }
+.kv dd { margin: 0; min-width: 0; }
+@media (max-width: 560px) { .kv { grid-template-columns: 1fr; } .kv dd { margin-bottom: 6px; } }
+
+/* Script table */
+.script { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); }
+.script table { width: 100%; border-collapse: collapse; min-width: 620px; font-size: 15px; }
+.script th, .script td { text-align: left; vertical-align: top; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+.script tr:last-child td { border-bottom: none; }
+.script th { font-family: var(--f-mono); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.script td.t { font-family: var(--f-mono); font-size: 13px; color: var(--berry); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.script td.beat { font-weight: 700; white-space: nowrap; }
+.script .screen { display: inline-block; margin-top: 6px; font-size: 13px; font-weight: 700; padding: 3px 8px; border-radius: 4px; background: var(--ink); color: var(--paper); }
+
+/* Social proof editor */
+.editor { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); }
+.editor label { display: grid; gap: 4px; font-size: 12px; font-family: var(--f-mono); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.editor input {
+  font: 600 16px var(--f-body);
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px 10px;
+  width: 120px;
+}
+.editor input#proof-noun { width: 170px; }
+.editor p { margin: 0; font-size: 13px; color: var(--muted); flex: 1 1 220px; }
+
+/* Carousel preview */
+.carousel { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x mandatory; }
+.slide {
+  flex: 0 0 min(240px, 72%);
+  aspect-ratio: 4 / 5;
+  max-width: 100%;
+  border-radius: 10px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  scroll-snap-align: start;
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+.slide.cover, .slide.end { background: var(--berry); color: var(--on-berry); border-color: var(--berry); }
+.slide .sn { font-family: var(--f-mono); font-size: 11px; opacity: .75; }
+.slide .st { font-family: var(--f-display); font-size: 21px; line-height: 1.2; text-wrap: balance; }
+.slide .sf { font-size: 12px; opacity: .8; }
+
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 14px; }
+.box { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 18px; min-width: 0; }
+.box p { margin: 0 0 10px; }
+.box p:last-child { margin-bottom: 0; }
+.source { font-size: 15px; color: var(--muted); }
+.box [data-copy-src] { white-space: pre-line; }
+
+.static-post {
+  aspect-ratio: 1 / 1;
+  max-width: 340px;
+  width: 100%;
+  border-radius: 10px;
+  background: var(--teal);
+  color: var(--paper);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 28px;
+  gap: 14px;
+}
+.static-post .q { font-family: var(--f-display); font-size: 26px; line-height: 1.2; text-wrap: balance; }
+.static-post .by { font-family: var(--f-mono); font-size: 12px; opacity: .85; }
+
+footer.foot { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .panel:not([hidden]) { animation: rise .25s ease-out; }
+  @keyframes rise { from { transform: translateY(4px); } to { transform: none; } }
+}
+</style>
+
+<div class="wrap">
+  <header class="id-card">
+    <div>
+      <div class="eyebrow">Caderno de conteúdo · Instagram</div>
+      <h1>Priscilla, Enfermeira Obstétrica</h1>
+      <p class="lede">Os 7 prompts rodados para o seu perfil. Cada aba mostra o prompt com as variáveis preenchidas e o resultado pronto para gravar, postar ou copiar.</p>
+    </div>
+    <dl class="fields">
+      <dt>Nicho</dt><dd>Gestação, parto e pós-parto</dd>
+      <dt>Público</dt><dd>Gestantes de 1ª viagem, 25–38 anos</dd>
+      <dt>Tom</dt><dd>Direto, acolhedor, baseado em evidência</dd>
+    </dl>
+  </header>
+
+  <nav class="tabs" aria-label="Prompts">
+    <div class="tablist" role="tablist">
+      <button class="tab" role="tab" id="tab-viral" aria-controls="viral" aria-selected="true"><span class="n">1</span>Viral</button>
+      <button class="tab" role="tab" id="tab-ganchos" aria-controls="ganchos" aria-selected="false"><span class="n">2</span>Dor → Gancho</button>
+      <button class="tab" role="tab" id="tab-roteiro" aria-controls="roteiro" aria-selected="false"><span class="n">3</span>Roteiro Reels</button>
+      <button class="tab" role="tab" id="tab-prova" aria-controls="prova" aria-selected="false"><span class="n">4</span>Prova social</button>
+      <button class="tab" role="tab" id="tab-salvar" aria-controls="salvar" aria-selected="false"><span class="n">5</span>Salvamentos</button>
+      <button class="tab" role="tab" id="tab-reaproveitar" aria-controls="reaproveitar" aria-selected="false"><span class="n">6</span>Reaproveitar</button>
+      <button class="tab" role="tab" id="tab-cta" aria-controls="cta" aria-selected="false"><span class="n">7</span>CTAs</button>
+    </div>
+  </nav>
+
+  <!-- 1. VIRAL -->
+  <section class="panel" id="viral" role="tabpanel" aria-labelledby="tab-viral">
+    <div class="panel-head">
+      <h2>5 ideias com alto potencial de compartilhamento</h2>
+      <p>Ideias curtas, pensadas para a gestante marcar a amiga, mandar pro parceiro ou repostar nos stories.</p>
+    </div>
+    <details class="prompt">
+      <summary>Prompt usado</summary>
+      <div class="prompt-body"><blockquote>“Você é um estrategista de redes sociais especialista em crescimento acelerado. Analise as últimas 10 tendências virais do Instagram em <span class="var">enfermagem obstétrica: gestação, parto e pós-parto</span> e crie 5 ideias curtas, explosivas e com alto potencial de compartilhamento. Seja específico e prático.”</blockquote></div>
+    </details>
+    <div class="note"><b>Antes de gravar:</b> não tenho acesso ao feed do Instagram em tempo real. As 10 tendências abaixo são formatos que vêm performando bem no nicho materno. Abra o Reels, pesquise “parto”, “gestante” e “puerpério” e confira quais áudios estão em alta nesta semana.</div>
+    <div>
+      <h3>10 formatos em alta no nicho</h3>
+      <ol class="trends">
+        <li><b>POV com texto na tela</b>Cena do dia a dia narrada só por legenda.</li>
+        <li><b>Mito ou verdade</b>Gesto ou carimbo de “mito” e explicação em 1 frase.</li>
+        <li><b>“Ninguém te conta que…”</b>Lista rápida de verdades sobre o puerpério.</li>
+        <li><b>Stitch com novela ou filme</b>Profissional corrigindo cena de parto da ficção.</li>
+        <li><b>Bastidores do plantão</b>“Um plantão comigo” sem expor pacientes.</li>
+        <li><b>Red flag / green flag</b>Sinais de alerta versus sinais tranquilizadores.</li>
+        <li><b>Tutorial em 3 passos</b>Demonstração com bola, rebozo ou boneca.</li>
+        <li><b>Expectativa x realidade</b>Contraste bem-humorado da maternidade real.</li>
+        <li><b>Áudio em alta + legenda</b>Dublagem de áudio viral com texto do nicho.</li>
+        <li><b>Respondendo comentário</b>Vídeo-resposta a uma dúvida real da caixinha.</li>
+      </ol>
+    </div>
+    <div class="ideas">
+      <article class="idea">
+        <div class="idea-top"><h4>Parto de novela x parto de verdade</h4><span class="pill">Stitch</span></div>
+        <div class="hook" data-copy-src>“A bolsa estourou no restaurante.” Na vida real, quase nunca é assim.</div>
+        <dl class="kv">
+          <dt>Roteiro</dt><dd>Corte de 3s de uma cena clássica de novela. Você entra: “Na maioria dos partos, as contrações começam antes da bolsa romper. E ninguém precisa sair correndo.” Fecha com o que fazer se a bolsa romper: observar a cor do líquido, anotar o horário e ligar para a equipe.</dd>
+          <dt>Por que viraliza</dt><dd>Humor + correção de crença popular. Todo mundo já viu essa cena.</dd>
+        </dl>
+        <div><button class="copy" type="button">Copiar gancho</button></div>
+      </article>
+      <article class="idea">
+        <div class="idea-top"><h4>POV: “contração” de hora em hora</h4><span class="pill">POV + humor</span></div>
+        <div class="hook" data-copy-src>POV: ela ligou pra maternidade com uma contração por hora.</div>
+        <dl class="kv">
+          <dt>Roteiro</dt><dd>Você atende o telefone com cara de paciência. Corte para o quadro: “regra 5-1-1: contrações a cada 5 minutos, durando 1 minuto, por 1 hora”. Legenda: “combine o seu critério com a sua equipe, cada maternidade orienta de um jeito”.</dd>
+          <dt>Por que viraliza</dt><dd>A gestante se reconhece e manda pro parceiro “é você”.</dd>
+        </dl>
+        <div><button class="copy" type="button">Copiar gancho</button></div>
+      </article>
+      <article class="idea">
+        <div class="idea-top"><h4>Red flags do pós-parto que não são “normal”</h4><span class="pill">Red flag</span></div>
+        <div class="hook" data-copy-src>Se alguém disser que isso é normal no pós-parto, desconfie.</div>
+        <dl class="kv">
+          <dt>Roteiro</dt><dd>5 cortes rápidos, um sinal por corte: febre; sangramento que encharca um absorvente em 1 hora; dor de cabeça forte com visão embaçada; dor ou inchaço em uma perna só; tristeza que dura mais de 2 semanas. Final: “qualquer um desses, procure atendimento”.</dd>
+          <dt>Por que viraliza</dt><dd>Informação de proteção. Quem assiste manda para irmã, amiga, cunhada.</dd>
+        </dl>
+        <div><button class="copy" type="button">Copiar gancho</button></div>
+      </article>
+      <article class="idea">
+        <div class="idea-top"><h4>A mala da maternidade de quem trabalha lá</h4><span class="pill">Bastidores</span></div>
+        <div class="hook" data-copy-src>Sou enfermeira obstétrica. Isso eu tiraria da sua mala.</div>
+        <dl class="kv">
+          <dt>Roteiro</dt><dd>Mala aberta na cama. Você tira 3 itens que quase ninguém usa (excesso de roupinha, travesseiro de amamentação gigante, maquiagem completa) e coloca 3 que fazem falta (carregador com cabo longo, chinelo para o banho, lanche para o acompanhante).</dd>
+          <dt>Por que viraliza</dt><dd>Autoridade de quem está do outro lado + utilidade imediata. Alto salvamento.</dd>
+        </dl>
+        <div><button class="copy" type="button">Copiar gancho</button></div>
+      </article>
+      <article class="idea">
+        <div class="idea-top"><h4>Frases que toda gestante já ouviu</h4><span class="pill">Áudio em alta</span></div>
+        <div class="hook" data-copy-src>Frases que toda gestante já ouviu (e o que dizer no lugar).</div>
+        <dl class="kv">
+          <dt>Roteiro</dt><dd>Sobre um áudio viral, aparecem as frases: “Aproveita pra dormir agora”, “Nossa, que barriga grande”, “Vai ser cesárea, né?”. Na virada do áudio, a versão acolhedora: “Como você está se sentindo?”, “Quer ajuda com alguma coisa?”.</dd>
+          <dt>Por que viraliza</dt><dd>Identificação total. Gera comentários com as frases que cada uma ouviu.</dd>
+        </dl>
+        <div><button class="copy" type="button">Copiar gancho</button></div>
+      </article>
+    </div>
+  </section>
+
+  <!-- 2. GANCHOS -->
+  <section class="panel" id="ganchos" role="tabpanel" aria-labelledby="tab-ganchos" hidden>
+    <div class="panel-head">
+      <h2>10 dores transformadas em ganchos</h2>
+      <p>Todos com até 10 palavras. Use como primeira frase falada ou como texto na tela nos 2 primeiros segundos.</p>
+    </div>
+    <details class="prompt">
+      <summary>Prompt usado</summary>
+      <div class="prompt-body"><blockquote>“Liste as 10 maiores dores que o público <span class="var">gestantes de primeira viagem que querem um parto respeitoso</span> sente sobre <span class="var">gestação, parto e pós-parto</span>. Transforme cada dor em um gancho de até 10 palavras, pronto para ser usado em Reels. Evite clichês, seja direto e provocador.”</blockquote></div>
+    </details>
+    <ol class="lines">
+      <li class="line"><span class="idx">01</span><div class="txt"><div class="main" data-copy-src>Seu medo da dor tem nome. E tem manejo.</div><div class="sub">Dor: medo da dor do parto.</div></div><button class="copy" type="button">Copiar</button></li>
+      <li class="line"><span class="idx">02</span><div class="txt"><div class="main" data-copy-src>Cesárea marcada às 38 semanas? Pergunte o motivo.</div><div class="sub">Dor: medo de uma cesárea sem indicação clara.</div></div><button class="copy" type="button">Copiar</button></li>
+      <li class="line"><span class="idx">03</span><div class="txt"><div class="main" data-copy-src>Ninguém pode subir na sua barriga. Nem no parto.</div><div class="sub">Dor: medo de violência obstétrica (manobra de Kristeller).</div></div><button class="copy" type="button">Copiar</button></li>
+      <li class="line"><span class="idx">04</span><div class="txt"><div class="main" data-copy-src>Contração de verdade não passa quando você deita.</div><div class="sub">Dor: não saber se já é trabalho de parto.</div></div><button class="copy" type="button">Copiar</button></li>
+      <li class="line"><span class="idx">05</span><div class="txt"><div class="main" data-copy-src>Mamilo sangrando não é “normal”. É sinal de ajuste.</div><div class="sub">Dor: amamentação dolorosa e sensação de fracasso.</div></div><button class="copy" type="button">Copiar</button></li>
+      <li class="line"><span class="idx">06</span><div class="txt"><div class="main" data-copy-src>Todo mundo visita o bebê. Ninguém visita a mãe.</div><div class="sub">Dor: solidão no puerpério.</div></div><button class="copy" type="button">Copiar</button></li>
+      <li class="line"><span class="idx">07</span><div class="txt"><div class="main" data-copy-src>Episiotomia de rotina não é protocolo. É desatualização.</div><div class="sub">Dor: medo do corte e da laceração.</div></div><button class="copy" type="button">Copiar</button></li>
+      <li class="line"><span class="idx">08</span><div class="txt"><div class="main" data-copy-src>Seu acompanhante é lei. Não é favor do hospital.</div><div class="sub">Dor: medo de parir sozinha. Lei nº 11.108/2005.</div></div><button class="copy" type="button">Copiar</button></li>
+      <li class="line"><span class="idx">09</span><div class="txt"><div class="main" data-copy-src>O Google nunca fez um parto. Pergunte pra quem faz.</div><div class="sub">Dor: excesso de informação contraditória na internet.</div></div><button class="copy" type="button">Copiar</button></li>
+      <li class="line"><span class="idx">10</span><div class="txt"><div class="main" data-copy-src>Seu útero leva semanas pra voltar. Seu corpo também.</div><div class="sub">Dor: cobrança com o corpo no pós-parto.</div></div><button class="copy" type="button">Copiar</button></li>
+    </ol>
+  </section>
+
+  <!-- 3. ROTEIRO -->
+  <section class="panel" id="roteiro" role="tabpanel" aria-labelledby="tab-roteiro" hidden>
+    <div class="panel-head">
+      <h2>Trabalho de parto ou alarme falso? Roteiro de 30 segundos</h2>
+      <p>Frases curtas para falar olhando pra câmera. Cerca de 80 palavras, ritmo confortável para 30s.</p>
+    </div>
+    <details class="prompt">
+      <summary>Prompt usado</summary>
+      <div class="prompt-body"><blockquote>“Crie um roteiro de 30 segundos para Reels sobre <span class="var">como saber se é trabalho de parto ou alarme falso</span>. Estrutura: 1) Gancho irresistível, 2) História curta e envolvente, 3) CTA para comentar ou salvar. Use frases curtas e simples. Nenhuma enrolação.”</blockquote></div>
+    </details>
+    <div class="script">
+      <table>
+        <thead><tr><th>Tempo</th><th>Bloco</th><th>Fala</th><th>Cena</th></tr></thead>
+        <tbody>
+          <tr><td class="t">0–3s</td><td class="beat">Gancho</td><td>“Foi pra maternidade e mandaram voltar pra casa? Eu explico.”<br><span class="screen">VOLTOU PRA CASA? ASSISTE ATÉ O FIM</span></td><td>Close no rosto. Sem introdução.</td></tr>
+          <tr><td class="t">3–18s</td><td class="beat">História</td><td>“Uma gestante me ligou às 2 da manhã. Contrações há três horas. Perguntei: estão no mesmo ritmo? Ficam mais fortes? Passam no banho? Passavam. Ela dormiu. Dois dias depois veio o ritmo de verdade. Aí era hora.”</td><td>Plano médio, você sentada. Corte a cada pergunta.</td></tr>
+          <tr><td class="t">18–26s</td><td class="beat">Virada</td><td>“Contração de trabalho de parto fica regular, mais longa e mais forte. E não some com banho nem descanso.”<br><span class="screen">REGULAR · MAIS LONGA · MAIS FORTE</span></td><td>Texto aparece palavra por palavra.</td></tr>
+          <tr><td class="t">26–30s</td><td class="beat">CTA</td><td>“Salva pra mostrar pro seu acompanhante. E comenta: quantas semanas você tá?”</td><td>Aponta pro botão de salvar.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="two">
+      <div class="box">
+        <h3>Legenda sugerida</h3>
+        <p data-copy-src>Nem toda contração é trabalho de parto. Observe 3 coisas: ritmo, duração e intensidade. Se elas aumentam e não passam com banho ou descanso, fale com a sua equipe.
+
+Vá na hora, sem esperar ritmo, se: a bolsa romper, houver sangramento, o bebê mexer menos ou a dor for forte e contínua.
+
+Salva e manda pro seu acompanhante.</p>
+        <button class="copy" type="button">Copiar legenda</button>
+      </div>
+      <div class="box">
+        <h3>Sobre a história</h3>
+        <p>A história é ilustrativa. Troque por um caso que você viveu, sem nome, idade ou qualquer detalhe que identifique a paciente.</p>
+        <p>Histórias reais, contadas em primeira pessoa, seguram mais retenção que explicação técnica.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. PROVA SOCIAL -->
+  <section class="panel" id="prova" role="tabpanel" aria-labelledby="tab-prova" hidden>
+    <div class="panel-head">
+      <h2>5 frases de prova social para texto sobreposto</h2>
+      <p>Até 10 palavras cada. Combinam número real com curiosidade para segurar o vídeo.</p>
+    </div>
+    <details class="prompt">
+      <summary>Prompt usado</summary>
+      <div class="prompt-body"><blockquote>“Pegue o resultado <span class="var">+300 famílias acompanhadas do pré-natal ao pós-parto</span> e crie 5 frases curtas que transmitam prova social e curiosidade, perfeitas para texto sobreposto em vídeos. Mantenha impacto máximo em até 10 palavras.”</blockquote></div>
+    </details>
+    <div class="editor">
+      <label for="proof-n">Seu número<input id="proof-n" type="text" inputmode="numeric" value="300" autocomplete="off"></label>
+      <label for="proof-noun">O que você conta<input id="proof-noun" type="text" value="famílias" autocomplete="off"></label>
+      <p><b>300 famílias é um exemplo.</b> Coloque o seu número real e as frases se atualizam.</p>
+    </div>
+    <ol class="lines" id="proof-list">
+      <li class="line"><span class="idx">01</span><div class="txt"><div class="main" data-copy-src data-tpl="{n} {noun} acompanhadas. A pergunta nº 1 é sempre essa."></div></div><button class="copy" type="button">Copiar</button></li>
+      <li class="line"><span class="idx">02</span><div class="txt"><div class="main" data-copy-src data-tpl="Depois de {n} {noun}, aprendi o que ninguém ensina."></div></div><button class="copy" type="button">Copiar</button></li>
+      <li class="line"><span class="idx">03</span><div class="txt"><div class="main" data-copy-src data-tpl="{n} {noun} depois, eu só repito uma coisa."></div></div><button class="copy" type="button">Copiar</button></li>
+      <li class="line"><span class="idx">04</span><div class="txt"><div class="main" data-copy-src data-tpl="O erro que mais vi em {n} {noun} acompanhadas."></div></div><button class="copy" type="button">Copiar</button></li>
+      <li class="line"><span class="idx">05</span><div class="txt"><div class="main" data-copy-src data-tpl="{n} {noun} me fizeram a mesma pergunta. Respondo aqui."></div></div><button class="copy" type="button">Copiar</button></li>
+    </ol>
+    <div class="note"><b>Regra do Cofen:</b> prova social pode mostrar experiência, nunca prometer resultado clínico (como “parto normal garantido”) nem expor paciente sem autorização por escrito. Veja a Resolução Cofen nº 554/2017.</div>
+  </section>
+
+  <!-- 5. SALVAMENTOS -->
+  <section class="panel" id="salvar" role="tabpanel" aria-labelledby="tab-salvar" hidden>
+    <div class="panel-head">
+      <h2>Reta final da gestação: 5 dicas que pouca gente conhece</h2>
+      <p>Cada dica com até 12 palavras. Abaixo, a prévia do carrossel com capa e slide final.</p>
+    </div>
+    <details class="prompt">
+      <summary>Prompt usado</summary>
+      <div class="prompt-body"><blockquote>“Liste 5 dicas práticas e pouco conhecidas sobre <span class="var">a reta final da gestação e a preparação para o parto</span>. Cada dica deve ter no máximo 12 palavras, ser clara e fácil de aplicar. O objetivo é criar um carrossel impossível de não salvar.”</blockquote></div>
+    </details>
+    <ol class="lines">
+      <li class="line"><span class="idx">01</span><div class="txt"><div class="main" data-copy-src>Massagem perineal a partir de 35 semanas reduz laceração no primeiro parto.</div><div class="meta"><span class="pill teal">evidência: revisão Cochrane</span></div></div><button class="copy" type="button">Copiar</button></li>
+      <li class="line"><span class="idx">02</span><div class="txt"><div class="main" data-copy-src>Peça o clampeamento tardio do cordão no seu plano de parto.</div><div class="meta"><span class="pill teal">recomendação OMS</span></div></div><button class="copy" type="button">Copiar</button></li>
+      <li class="line"><span class="idx">03</span><div class="txt"><div class="main" data-copy-src>Bexiga cheia pode atrasar o parto: urine a cada 2 horas.</div><div class="meta"><span class="pill teal">durante o trabalho de parto</span></div></div><button class="copy" type="button">Copiar</button></li>
+      <li class="line"><span class="idx">04</span><div class="txt"><div class="main" data-copy-src>Após 28 semanas, conheça o padrão de movimentos. Diminuiu? Avise já.</div><div class="meta"><span class="pill teal">sinal de alerta</span></div></div><button class="copy" type="button">Copiar</button></li>
+      <li class="line"><span class="idx">05</span><div class="txt"><div class="main" data-copy-src>Leve um carregador com cabo de 2 metros para a maternidade.</div><div class="meta"><span class="pill teal">dica de plantão</span></div></div><button class="copy" type="button">Copiar</button></li>
+    </ol>
+    <div>
+      <h3>Prévia do carrossel · 7 slides</h3>
+      <div class="carousel" tabindex="0" aria-label="Prévia do carrossel">
+        <div class="slide cover"><span class="sn">1/7</span><span class="st">5 coisas que eu queria que toda gestante soubesse antes das 36 semanas</span><span class="sf">@priscilla · enfermeira obstétrica</span></div>
+        <div class="slide"><span class="sn">2/7</span><span class="st">Massagem perineal a partir de 35 semanas reduz laceração no primeiro parto.</span><span class="sf">Converse com sua equipe antes de começar.</span></div>
+        <div class="slide"><span class="sn">3/7</span><span class="st">Peça o clampeamento tardio do cordão no seu plano de parto.</span><span class="sf">Esperar pelo menos 1 minuto ajuda as reservas de ferro do bebê.</span></div>
+        <div class="slide"><span class="sn">4/7</span><span class="st">Bexiga cheia pode atrasar o parto: urine a cada 2 horas.</span><span class="sf">Vale lembrar o acompanhante também.</span></div>
+        <div class="slide"><span class="sn">5/7</span><span class="st">Após 28 semanas, conheça o padrão de movimentos. Diminuiu? Avise já.</span><span class="sf">Não espere o dia seguinte.</span></div>
+        <div class="slide"><span class="sn">6/7</span><span class="st">Leve um carregador com cabo de 2 metros para a maternidade.</span><span class="sf">A tomada nunca fica perto da cama.</span></div>
+        <div class="slide end"><span class="sn">7/7</span><span class="st">Salva agora. Você vai lembrar disso na 39ª semana.</span><span class="sf">Manda pra uma amiga grávida.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. REAPROVEITAR -->
+  <section class="panel" id="reaproveitar" role="tabpanel" aria-labelledby="tab-reaproveitar" hidden>
+    <div class="panel-head">
+      <h2>Um texto sobre plano de parto, três formatos</h2>
+      <p>O texto original foi escrito como exemplo. Troque por qualquer legenda ou artigo seu e repita o mesmo processo.</p>
+    </div>
+    <details class="prompt">
+      <summary>Prompt usado</summary>
+      <div class="prompt-body"><blockquote>“Transforme este texto <span class="var">texto sobre plano de parto (abaixo)</span> em: 1. Roteiro para Reels de 7 segundos, 2. Carrossel de 5 slides, 3. Post estático com frase de impacto. Adapte linguagem e formato para cada caso.”</blockquote></div>
+    </details>
+    <div class="box">
+      <h3>Texto original</h3>
+      <p class="source">O plano de parto não é uma lista de exigências. É um documento em que você registra suas preferências para o trabalho de parto, o parto e os cuidados com o bebê: quem vai te acompanhar, se quer liberdade de posição, métodos de alívio da dor, contato pele a pele, clampeamento oportuno do cordão. Ele abre a conversa com a equipe e te faz estudar antes. Não garante que tudo sai como escrito, porque parto muda de rumo. Mas garante que, se mudar, você vai entender o porquê e participar da decisão. Comece a escrever no segundo trimestre e leve para discutir no pré-natal.</p>
+    </div>
+
+    <div>
+      <h3>1 · Reels de 7 segundos</h3>
+      <div class="script">
+        <table>
+          <thead><tr><th>Tempo</th><th>Texto na tela</th><th>Cena</th></tr></thead>
+          <tbody>
+            <tr><td class="t">0–2s</td><td><b>Plano de parto não é lista de exigências.</b></td><td>Você segurando uma folha, balançando a cabeça.</td></tr>
+            <tr><td class="t">2–5s</td><td><b>É como você participa das decisões.</b></td><td>Vira a folha pra câmera: “MEU PLANO DE PARTO”.</td></tr>
+            <tr><td class="t">5–7s</td><td><b>Salva e começa hoje.</b></td><td>Aponta pro botão de salvar. Áudio em alta ao fundo.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div>
+      <h3>2 · Carrossel de 5 slides</h3>
+      <div class="carousel" tabindex="0" aria-label="Carrossel sobre plano de parto">
+        <div class="slide cover"><span class="sn">1/5</span><span class="st">Plano de parto: o que é e o que não é</span><span class="sf">arraste →</span></div>
+        <div class="slide"><span class="sn">2/5</span><span class="st">Não é lista de exigências. É o registro das suas preferências.</span><span class="sf">Para o parto e para os cuidados com o bebê.</span></div>
+        <div class="slide"><span class="sn">3/5</span><span class="st">O que colocar: acompanhante, posições, alívio da dor, pele a pele, cordão.</span><span class="sf">Comece por esses 5 itens.</span></div>
+        <div class="slide"><span class="sn">4/5</span><span class="st">Ele não garante o roteiro. Garante que você participa se mudar.</span><span class="sf">Parto muda de rumo. Sua voz continua.</span></div>
+        <div class="slide end"><span class="sn">5/5</span><span class="st">Comece no 2º trimestre. Leve no pré-natal.</span><span class="sf">Salva e manda pro seu acompanhante.</span></div>
+      </div>
+    </div>
+
+    <div class="two">
+      <div>
+        <h3>3 · Post estático</h3>
+        <div class="static-post"><span class="q">Seu parto pode mudar de rumo. Sua voz não precisa sumir.</span><span class="by">Priscilla · Enfermeira Obstétrica</span></div>
+      </div>
+      <div class="box">
+        <h3>Legenda do post estático</h3>
+        <p data-copy-src>Plano de parto não serve para controlar o parto. Serve para você entender cada decisão e participar dela.
+
+Comece no segundo trimestre, escreva com calma e leve para conversar no pré-natal.
+
+Comenta “PLANO” que eu te mando um modelo.</p>
+        <button class="copy" type="button">Copiar legenda</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. CTA -->
+  <section class="panel" id="cta" role="tabpanel" aria-labelledby="tab-cta" hidden>
+    <div class="panel-head">
+      <h2>10 CTAs para comentários e salvamentos</h2>
+      <p>Cada um marca o gatilho que usa e o objetivo. Alterne entre eles para não repetir o mesmo pedido em todo post.</p>
+    </div>
+    <details class="prompt">
+      <summary>Prompt usado</summary>
+      <div class="prompt-body"><blockquote>“Crie 10 CTAs curtos, criativos e diretos que incentivem comentários ou salvamentos em posts sobre <span class="var">gestação, parto e pós-parto</span>. Evite frases genéricas, use gatilhos de curiosidade e ação imediata.”</blockquote></div>
+    </details>
+    <ol class="lines">
+      <li class="line"><span class="idx">01</span><div class="txt"><div class="main" data-copy-src>Comenta sua semana de gestação. Respondo com uma dica pra ela.</div><div class="meta"><span class="pill">comentário</span><span class="pill teal">reciprocidade</span></div></div><button class="copy" type="button">Copiar</button></li>
+      <li class="line"><span class="idx">02</span><div class="txt"><div class="main" data-copy-src>Salva agora. Você vai procurar isso às 3h da manhã.</div><div class="meta"><span class="pill">salvamento</span><span class="pill teal">urgência</span></div></div><button class="copy" type="button">Copiar</button></li>
+      <li class="line"><span class="idx">03</span><div class="txt"><div class="main" data-copy-src>Comenta “PLANO” que eu te mando o modelo de plano de parto.</div><div class="meta"><span class="pill">comentário</span><span class="pill teal">palavra-chave</span></div></div><button class="copy" type="button">Copiar</button></li>
+      <li class="line"><span class="idx">04</span><div class="txt"><div class="main" data-copy-src>Marca quem vai ser seu acompanhante. Ele precisa ver isso.</div><div class="meta"><span class="pill">comentário</span><span class="pill teal">compartilhamento</span></div></div><button class="copy" type="button">Copiar</button></li>
+      <li class="line"><span class="idx">05</span><div class="txt"><div class="main" data-copy-src>Qual dessas ninguém te contou? Responde só com o número.</div><div class="meta"><span class="pill">comentário</span><span class="pill teal">curiosidade</span></div></div><button class="copy" type="button">Copiar</button></li>
+      <li class="line"><span class="idx">06</span><div class="txt"><div class="main" data-copy-src>Salva antes do chá de bebê. Depois você me agradece.</div><div class="meta"><span class="pill">salvamento</span><span class="pill teal">antecipação</span></div></div><button class="copy" type="button">Copiar</button></li>
+      <li class="line"><span class="idx">07</span><div class="txt"><div class="main" data-copy-src>Comenta “EU” se você também ouviu isso na gravidez.</div><div class="meta"><span class="pill">comentário</span><span class="pill teal">pertencimento</span></div></div><button class="copy" type="button">Copiar</button></li>
+      <li class="line"><span class="idx">08</span><div class="txt"><div class="main" data-copy-src>Manda pra grávida que mais pesquisa sintoma no Google.</div><div class="meta"><span class="pill">compartilhamento</span><span class="pill teal">humor</span></div></div><button class="copy" type="button">Copiar</button></li>
+      <li class="line"><span class="idx">09</span><div class="txt"><div class="main" data-copy-src>Seu parto foi diferente disso? Me conta aqui embaixo.</div><div class="meta"><span class="pill">comentário</span><span class="pill teal">opinião</span></div></div><button class="copy" type="button">Copiar</button></li>
+      <li class="line"><span class="idx">10</span><div class="txt"><div class="main" data-copy-src>Salva e leva na próxima consulta de pré-natal.</div><div class="meta"><span class="pill">salvamento</span><span class="pill teal">ação imediata</span></div></div><button class="copy" type="button">Copiar</button></li>
+    </ol>
+  </section>
+
+  <footer class="foot">
+    Conteúdo de saúde para divulgação. Revise cada orientação clínica antes de publicar e adapte aos protocolos da sua equipe.
+  </footer>
+</div>
+
+<script>
+(function () {
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
+  var panels = tabs.map(function (t) { return document.getElementById(t.getAttribute('aria-controls')); });
+
+  function show(id, focus) {
+    var found = false;
+    tabs.forEach(function (t, i) {
+      var on = t.getAttribute('aria-controls') === id;
+      if (on) found = true;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.tabIndex = on ? 0 : -1;
+      panels[i].hidden = !on;
+      if (on && focus) t.focus();
+      if (on) t.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    });
+    if (!found) return false;
+    try { localStorage.setItem('priscilla-tab', id); } catch (e) {}
+    try { history.replaceState(null, '', '#' + id); } catch (e) {}
+    return true;
+  }
+
+  tabs.forEach(function (t, i) {
+    t.addEventListener('click', function () { show(t.getAttribute('aria-controls')); window.scrollTo({ top: 0 }); });
+    t.addEventListener('keydown', function (e) {
+      var d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+      if (!d) return;
+      e.preventDefault();
+      var next = tabs[(i + d + tabs.length) % tabs.length];
+      show(next.getAttribute('aria-controls'), true);
+    });
+  });
+
+  var start = (location.hash || '').slice(1);
+  if (!start) { try { start = localStorage.getItem('priscilla-tab') || ''; } catch (e) {} }
+  if (!start || !show(start)) show('viral');
+
+  // Prova social: frases editáveis
+  var nIn = document.getElementById('proof-n');
+  var nounIn = document.getElementById('proof-noun');
+  function renderProof() {
+    var n = nIn.value.trim() || '300';
+    var noun = nounIn.value.trim() || 'famílias';
+    document.querySelectorAll('[data-tpl]').forEach(function (el) {
+      el.textContent = el.getAttribute('data-tpl').replace('{n}', n).replace('{noun}', noun);
+    });
+  }
+  nIn.addEventListener('input', renderProof);
+  nounIn.addEventListener('input', renderProof);
+  renderProof();
+
+  // Copiar
+  function sourceFor(btn) {
+    var box = btn.closest('.line, .idea, .box');
+    return box ? box.querySelector('[data-copy-src]') : null;
+  }
+  function selectText(el) {
+    var r = document.createRange(); r.selectNodeContents(el);
+    var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+  }
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('.copy');
+    if (!btn) return;
+    var src = sourceFor(btn);
+    if (!src) return;
+    var text = src.innerText.trim();
+    var label = btn.textContent;
+    function done(msg) {
+      btn.textContent = msg; btn.classList.add('ok');
+      setTimeout(function () { btn.textContent = label; btn.classList.remove('ok'); }, 1400);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { done('Copiado'); }, function () { selectText(src); done('Selecionado'); });
+    } else { selectText(src); done('Selecionado'); }
+  });
+})();
+</script>
